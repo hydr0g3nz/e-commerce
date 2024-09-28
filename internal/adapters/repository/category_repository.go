@@ -3,6 +3,7 @@ package adapters
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
@@ -40,9 +41,9 @@ func (r *CategoryRepository) GetByID(id string) (*domain.Category, error) {
 
 func (r *CategoryRepository) Update(c *domain.Category) error {
 	category := model.CategoryDomainToModel(c)
+	category.BeforeUpdate()
 	mCategory := category.Map()
 	util.MapDeleteNilOrZero(mCategory)
-	fmt.Printf("cat %+v\n", mCategory)
 	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": category.ID}, bson.M{"$set": bson.M(mCategory)})
 	return err
 }
@@ -66,6 +67,18 @@ func (r *CategoryRepository) GetAll() ([]*domain.Category, error) {
 }
 
 func (r *CategoryRepository) AddProduct(categoryID string, productID string) error {
-	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": categoryID}, bson.M{"$addToSet": bson.M{"product_ids": productID}})
+	update := bson.M{
+		"$addToSet": bson.M{"product_ids": productID},
+		"$set":      bson.M{"updated_at": time.Now()},
+	}
+	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": categoryID}, update)
+	return err
+}
+func (r *CategoryRepository) RemoveProduct(categoryID string, productID string) error {
+	update := bson.M{
+		"$pull": bson.M{"product_ids": productID},
+		"$set":  bson.M{"updated_at": time.Now()},
+	}
+	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": categoryID}, update)
 	return err
 }

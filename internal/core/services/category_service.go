@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 	"github.com/hydr0g3nz/e-commerce/internal/core/ports"
 )
@@ -33,4 +35,9 @@ func (s *CategoryService) DeleteCategory(id string) error {
 }
 func (s *CategoryService) AddProduct(categoryID string, productID string) error {
 	return s.repo.AddProduct(categoryID, productID)
+}
+
+func (s *CategoryService) RemoveProduct(categoryID string, productID string) error {
+	fmt.Println("categoryID", categoryID, "productID", productID)
+	return s.repo.RemoveProduct(categoryID, productID)
 }

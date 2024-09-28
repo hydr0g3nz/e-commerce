@@ -54,6 +54,7 @@ func (h *CategoryHandler) UpdateCategory(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	fmt.Println("category", category)
 	err = h.service.UpdateCategory(category)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -78,6 +79,13 @@ func (h *CategoryHandler) AddProduct(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	if err := h.service.AddProduct(payload.CategoryID, payload.ProductID); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).SendString("Product added to category")
+}
+func (h *CategoryHandler) RemoveProduct(ctx *fiber.Ctx) error {
+
+	if err := h.service.RemoveProduct(ctx.Params("cat_id"), ctx.Params("prod_id")); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.Status(fiber.StatusOK).SendString("Product added to category")

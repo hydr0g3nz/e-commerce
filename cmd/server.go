@@ -43,6 +43,7 @@ func main() {
 	v1.Post("/category", categoryHandler.CreateCategory)
 	v1.Post("/category/product", categoryHandler.AddProduct)
 	v1.Put("/category", categoryHandler.UpdateCategory)
+	v1.Delete("/category/:cat_id/product/:prod_id", categoryHandler.RemoveProduct)
 	v1.Delete("/category/:id", categoryHandler.DeleteCategory)
 
 	app.Listen("127.0.0.1:3000")

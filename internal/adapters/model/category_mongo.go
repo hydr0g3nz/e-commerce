@@ -23,6 +23,7 @@ func (c *Category) SetUUID() {
 
 func CategoryDomainToModel(d *domain.Category) Category {
 	return Category{
+		Model:       Model{ID: d.ID},
 		Name:        d.Name,
 		Description: d.Description,
 		ProductIDs:  d.ProductIDs,

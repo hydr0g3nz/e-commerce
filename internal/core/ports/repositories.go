@@ -9,4 +9,5 @@ type CategoryRepository interface {
 	Update(category *domain.Category) error
 	Delete(id string) error
 	AddProduct(categoryID string, productID string) error
+	RemoveProduct(categoryID string, productID string) error
 }
