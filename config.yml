@@ -1,0 +1,11 @@
+app_name : e-commerce
+server:
+  host : 0.0.0.0
+  port: 8080
+  path : /api
+db:
+  host : localhost
+  port : "27018"
+  user : root
+  password : pass
+  name : e-commerce

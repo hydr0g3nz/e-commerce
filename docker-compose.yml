@@ -1,0 +1,18 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    restart: always
+    volumes:
+      - mongodb-data:/data/db
+    ports:
+      - "27018:27017"
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INIT_DB}
+volumes:
+  mongodb-data:
