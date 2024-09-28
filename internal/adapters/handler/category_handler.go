@@ -16,8 +16,16 @@ func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
 	return &CategoryHandler{service: service}
 }
 
+func (h *CategoryHandler) GetCategoryAll(ctx *fiber.Ctx) error {
+	category, err := h.service.GetCategoryAll()
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(category)
+}
 func (h *CategoryHandler) GetCategory(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
+	fmt.Println("id", id)
 	category, err := h.service.GetCategory(id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -31,6 +39,7 @@ func (h *CategoryHandler) CreateCategory(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	fmt.Println("category", category)
 	err = h.service.CreateCategory(category)
 	if err != nil {
 		fmt.Println("Error creating category:", err)
@@ -59,4 +68,17 @@ func (h *CategoryHandler) DeleteCategory(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.Status(fiber.StatusOK).SendString("Category deleted")
+}
+func (h *CategoryHandler) AddProduct(ctx *fiber.Ctx) error {
+	payload := new(struct {
+		CategoryID string `json:"category_id"`
+		ProductID  string `json:"product_id"`
+	})
+	if err := ctx.BodyParser(payload); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	if err := h.service.AddProduct(payload.CategoryID, payload.ProductID); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).SendString("Product added to category")
 }

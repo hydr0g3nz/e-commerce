@@ -8,4 +8,5 @@ type CategoryRepository interface {
 	GetAll() ([]*domain.Category, error)
 	Update(category *domain.Category) error
 	Delete(id string) error
+	AddProduct(categoryID string, productID string) error
 }

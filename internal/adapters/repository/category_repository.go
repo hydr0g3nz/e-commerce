@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
+	"github.com/hydr0g3nz/e-commerce/pkg/mongo/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -18,8 +20,11 @@ func NewCategoryRepository(db *mongo.Client) *CategoryRepository {
 	return &CategoryRepository{db: Db}
 }
 
-func (r *CategoryRepository) Create(category *domain.Category) error {
-	_, err := r.db.Collection("category").InsertOne(context.Background(), category)
+func (r *CategoryRepository) Create(c *domain.Category) error {
+	category := model.CategoryDomainToModel(c)
+	category.BeforeCreate()
+	categoryMap := category.Map()
+	_, err := r.db.Collection("category").InsertOne(context.Background(), categoryMap)
 	fmt.Println("save category", category)
 	return err
 }
@@ -33,8 +38,12 @@ func (r *CategoryRepository) GetByID(id string) (*domain.Category, error) {
 	return &category, nil
 }
 
-func (r *CategoryRepository) Update(category *domain.Category) error {
-	_, err := r.db.Collection("category").ReplaceOne(context.Background(), bson.M{"_id": category.ID}, category)
+func (r *CategoryRepository) Update(c *domain.Category) error {
+	category := model.CategoryDomainToModel(c)
+	mCategory := category.Map()
+	util.MapDeleteNilOrZero(mCategory)
+	fmt.Printf("cat %+v\n", mCategory)
+	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": category.ID}, bson.M{"$set": bson.M(mCategory)})
 	return err
 }
 
@@ -54,4 +63,9 @@ func (r *CategoryRepository) GetAll() ([]*domain.Category, error) {
 		return nil, err
 	}
 	return categories, nil
+}
+
+func (r *CategoryRepository) AddProduct(categoryID string, productID string) error {
+	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": categoryID}, bson.M{"$addToSet": bson.M{"product_ids": productID}})
+	return err
 }

@@ -8,4 +8,5 @@ type CategoryService interface {
 	GetByID(id string) (*domain.Category, error)
 	Update(category *domain.Category) error
 	Delete(id string) error
+	AddProduct(categoryID string, productID string) error
 }
