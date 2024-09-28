@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/google/uuid"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 )
 
@@ -14,11 +13,6 @@ type Category struct {
 	Name        string   `json:"name" bson:"name,omitempty"`
 	Description string   `json:"description" bson:"description,omitempty"`
 	ProductIDs  []string `json:"product_ids" bson:"product_ids,omitempty"`
-}
-
-func (c *Category) SetUUID() {
-	id, _ := uuid.NewV7()
-	c.ID = id.String()
 }
 
 func CategoryDomainToModel(d *domain.Category) Category {

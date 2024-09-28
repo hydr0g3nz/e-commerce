@@ -11,3 +11,12 @@ type CategoryRepository interface {
 	AddProduct(categoryID string, productID string) error
 	RemoveProduct(categoryID string, productID string) error
 }
+type ProductRepository interface {
+	Create(product *domain.Product) error
+	GetByID(id string) (*domain.Product, error)
+	GetAll() ([]*domain.Product, error)
+	Update(product *domain.Product) error
+	Delete(id string) error
+	AddVariation(productID string, variation *domain.Variation) error
+	RemoveVariation(productID string, variationID string) error
+}

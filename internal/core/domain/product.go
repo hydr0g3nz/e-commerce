@@ -22,13 +22,12 @@ package domain
 //   }
 
 type Product struct {
-	Id             string            `json:"id"`
-	Name           string            `json:"name"`
-	Description    string            `json:"description"`
-	Brand          string            `json:"brand"`
-	Category       string            `json:"category"`
-	SubCategory    string            `json:"sub_category"`
-	BasePrice      float64           `json:"price"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Brand       string `json:"brand"`
+	Category    string `json:"category"`
+	// SubCategory    string            `json:"sub_category"`
 	Variations     []Variation       `json:"variations"`
 	Specifications map[string]string `json:"specifications"`
 	ReviewIDs      []string          `json:"review_ids"`

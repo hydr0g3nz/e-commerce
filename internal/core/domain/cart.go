@@ -5,7 +5,7 @@ package domain
 // "quantity": 2,
 // "price": 25.00
 type Item struct {
-	ID       string `json:"product_id"`
+	Id       string `json:"product_id"`
 	Sku      string `json:"Sku"`
 	Quantity int    `json:"quantity"`
 	Price    int    `json:"price"`

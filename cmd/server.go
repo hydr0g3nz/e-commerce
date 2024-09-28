@@ -22,6 +22,9 @@ func main() {
 	categoryRepository := adapters.NewCategoryRepository(mongo)
 	categoryService := services.NewCategoryService(categoryRepository)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
+	productRepository := adapters.NewProductRepository(mongo)
+	productService := services.NewProductService(productRepository)
+	productHandler := handlers.NewProductHandler(productService)
 
 	app := fiber.New()
 	// Middleware for logging requests
@@ -38,6 +41,7 @@ func main() {
 
 	api := app.Group(cfg.Server.Path)
 	v1 := api.Group("/v1")
+	//category
 	v1.Get("/category", categoryHandler.GetCategoryAll)
 	v1.Get("/category/:id", categoryHandler.GetCategory)
 	v1.Post("/category", categoryHandler.CreateCategory)
@@ -45,6 +49,14 @@ func main() {
 	v1.Put("/category", categoryHandler.UpdateCategory)
 	v1.Delete("/category/:cat_id/product/:prod_id", categoryHandler.RemoveProduct)
 	v1.Delete("/category/:id", categoryHandler.DeleteCategory)
+	//products
+	v1.Get("/product", productHandler.GetAllProducts)
+	v1.Get("/product/:id", productHandler.GetProductByID)
+	v1.Post("/product", productHandler.CreateProduct)
+	v1.Put("/product", productHandler.UpdateProduct)
+	v1.Delete("/product/:id", productHandler.DeleteProduct)
+	v1.Post("/product/variant", productHandler.AddVariation)
+	v1.Delete("/product/variant/:id", productHandler.RemoveVariation)
 
 	app.Listen("127.0.0.1:3000")
 

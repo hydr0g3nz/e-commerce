@@ -32,7 +32,7 @@ func (r *CategoryRepository) Create(c *domain.Category) error {
 
 func (r *CategoryRepository) GetByID(id string) (*domain.Category, error) {
 	var category domain.Category
-	err := r.db.Collection("category").FindOne(context.Background(), bson.M{"_id": id}).Decode(&category)
+	err := r.db.Collection("category").FindOne(context.Background(), bson.M{"_id": id, "deleted_at": nil}).Decode(&category)
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +49,13 @@ func (r *CategoryRepository) Update(c *domain.Category) error {
 }
 
 func (r *CategoryRepository) Delete(id string) error {
-	_, err := r.db.Collection("category").DeleteOne(context.Background(), bson.M{"_id": id})
+	_, err := r.db.Collection("category").UpdateOne(context.Background(), bson.M{"_id": id}, bson.M{"$set": bson.M{"deleted_at": time.Now()}})
 	return err
 }
 
 func (r *CategoryRepository) GetAll() ([]*domain.Category, error) {
 	var categories []*domain.Category
-	cursor, err := r.db.Collection("category").Find(context.Background(), bson.M{})
+	cursor, err := r.db.Collection("category").Find(context.Background(), bson.M{"deleted_at": nil})
 	if err != nil {
 		return nil, err
 	}
