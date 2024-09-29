@@ -24,8 +24,7 @@ func NewCategoryRepository(db *mongo.Client) *CategoryRepository {
 func (r *CategoryRepository) Create(c *domain.Category) error {
 	category := model.CategoryDomainToModel(c)
 	category.BeforeCreate()
-	categoryMap := category.Map()
-	_, err := r.db.Collection("category").InsertOne(context.Background(), categoryMap)
+	_, err := r.db.Collection("category").InsertOne(context.Background(), category)
 	fmt.Println("save category", category)
 	return err
 }

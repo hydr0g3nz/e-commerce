@@ -5,7 +5,7 @@ import (
 )
 
 type Product struct {
-	Model
+	Model       `bson:"inline"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Brand       string `json:"brand"`
@@ -65,5 +65,16 @@ func (p *Product) Map() map[string]interface{} {
 		"review_ids":     p.ReviewIDs,
 		"rating":         p.Rating,
 		"images":         p.Images,
+		"created_at":     p.CreatedAt,
+		"updated_at":     p.UpdatedAt,
+		"deleted_at":     p.DeletedAt,
 	}
+}
+
+func ProductListModelToDomainList(products []*Product) []*domain.Product {
+	var productsList []*domain.Product
+	for _, product := range products {
+		productsList = append(productsList, ProductModelToDomain(product))
+	}
+	return productsList
 }

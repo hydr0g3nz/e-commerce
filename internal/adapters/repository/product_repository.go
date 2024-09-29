@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
@@ -23,24 +24,24 @@ func NewProductRepository(db *mongo.Client) *ProductRepository {
 func (r *ProductRepository) Create(p *domain.Product) error {
 	product := model.ProductDomainToModel(p)
 	product.BeforeCreate()
-	productMap := product.Map()
-	_, err := r.db.Collection("product").InsertOne(context.Background(), productMap)
+	_, err := r.db.Collection("product").InsertOne(context.Background(), product)
 	return err
 }
 func (r *ProductRepository) GetByID(id string) (*domain.Product, error) {
-	var product domain.Product
+	var product model.Product
 	err := r.db.Collection("product").FindOne(context.Background(), bson.M{"_id": id, "deleted_at": nil}).Decode(&product)
 	if err != nil {
 		return nil, err
 	}
-	return &product, nil
+	productD := model.ProductModelToDomain(&product)
+	return productD, nil
 }
 func (r *ProductRepository) Update(p *domain.Product) error {
 	product := model.ProductDomainToModel(p)
 	product.BeforeUpdate()
 	productMap := product.Map()
 	util.MapDeleteNilOrZero(productMap)
-	_, err := r.db.Collection("product").UpdateOne(context.Background(), bson.M{"_id": product.ID}, bson.M{"$set": product})
+	_, err := r.db.Collection("product").UpdateOne(context.Background(), bson.M{"_id": product.ID}, bson.M{"$set": bson.M(productMap)})
 	return err
 }
 func (r *ProductRepository) Delete(id string) error {
@@ -48,7 +49,7 @@ func (r *ProductRepository) Delete(id string) error {
 	return err
 }
 func (r *ProductRepository) GetAll() ([]*domain.Product, error) {
-	var products []*domain.Product
+	var products []*model.Product
 	cursor, err := r.db.Collection("product").Find(context.Background(), bson.M{"deleted_at": nil})
 	if err != nil {
 		return nil, err
@@ -57,7 +58,11 @@ func (r *ProductRepository) GetAll() ([]*domain.Product, error) {
 	if err != nil {
 		return nil, err
 	}
-	return products, nil
+	for _, v := range products {
+		fmt.Printf("%+v", v)
+	}
+	productDomainList := model.ProductListModelToDomainList(products)
+	return productDomainList, nil
 }
 
 func (r *ProductRepository) AddVariation(productID string, variation *domain.Variation) error {
@@ -71,7 +76,7 @@ func (r *ProductRepository) AddVariation(productID string, variation *domain.Var
 
 func (r *ProductRepository) RemoveVariation(productID string, variationID string) error {
 	update := bson.M{
-		"$pull": bson.M{"variations": bson.M{"_id": variationID}},
+		"$pull": bson.M{"variations": bson.M{"sku": variationID}},
 		"$set":  bson.M{"updated_at": time.Now()},
 	}
 	_, err := r.db.Collection("product").UpdateOne(context.Background(), bson.M{"_id": productID}, update)

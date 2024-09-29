@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 	"github.com/hydr0g3nz/e-commerce/internal/core/services"
@@ -54,7 +57,8 @@ func (h *ProductHandler) UpdateProduct(ctx *fiber.Ctx) error {
 }
 
 func (h *ProductHandler) DeleteProduct(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
+	id := ctx.Params("prod_id")
+	fmt.Println("id", id)
 	if err := h.service.Delete(id); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -76,6 +80,8 @@ func (h *ProductHandler) AddVariation(ctx *fiber.Ctx) error {
 func (h *ProductHandler) RemoveVariation(ctx *fiber.Ctx) error {
 	productID := ctx.Params("prod_id")
 	variationID := ctx.Params("var_id")
+	variationID, _ = url.PathUnescape(variationID)
+	fmt.Println("variationID", variationID, "productID", productID)
 	if err := h.service.RemoveVariation(productID, variationID); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

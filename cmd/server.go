@@ -54,9 +54,9 @@ func main() {
 	v1.Get("/product/:id", productHandler.GetProductByID)
 	v1.Post("/product", productHandler.CreateProduct)
 	v1.Put("/product", productHandler.UpdateProduct)
-	v1.Delete("/product/:id", productHandler.DeleteProduct)
-	v1.Post("/product/variant", productHandler.AddVariation)
-	v1.Delete("/product/variant/:id", productHandler.RemoveVariation)
+	v1.Delete("/product/:prod_id/variant/:var_id", productHandler.RemoveVariation)
+	v1.Delete("/product/:prod_id", productHandler.DeleteProduct)
+	v1.Post("/product/variant/:prod_id", productHandler.AddVariation)
 
 	app.Listen("127.0.0.1:3000")
 

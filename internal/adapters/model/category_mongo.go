@@ -9,7 +9,7 @@ type Category struct {
 	// "name": "Electronics",
 	// "description": "Devices and gadgets",
 	// "product_ids": ["987", "654", "321"]
-	Model
+	Model       `bson:"inline"`
 	Name        string   `json:"name" bson:"name,omitempty"`
 	Description string   `json:"description" bson:"description,omitempty"`
 	ProductIDs  []string `json:"product_ids" bson:"product_ids,omitempty"`

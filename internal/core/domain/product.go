@@ -20,9 +20,13 @@ package domain
 // 	  "image_url_2.jpg"
 // 	]
 //   }
+var (
+	ErrInvalidProduct   = "invalid product"
+	ErrInvalidVariation = "invalid variation"
+)
 
 type Product struct {
-	ID          string `json:"id"`
+	ID          string `json:"product_id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Brand       string `json:"brand"`
@@ -38,7 +42,53 @@ type Product struct {
 type Variation struct {
 	Sku   string
 	Stock int
-	Size  int
+	Size  string
 	Color string
 	Price float64
+}
+
+func (p *Product) IsCanCreate() bool {
+	if p.Name == "" {
+		return false
+	}
+	if p.Category == "" {
+		return false
+	}
+	if p.Brand == "" {
+		return false
+	}
+	if len(p.Variations) == 0 {
+		return false
+	}
+	if len(p.Specifications) == 0 {
+		return false
+	}
+	if p.Description == "" {
+		return false
+	}
+	if len(p.Images) == 0 {
+		return false
+	}
+	for _, v := range p.Variations {
+		if !v.IsCanAdd() {
+			return false
+		}
+	}
+	return true
+}
+
+func (v *Variation) IsCanAdd() bool {
+	if v.Sku == "" {
+		return false
+	}
+	if v.Size == "" {
+		return false
+	}
+	if v.Color == "" {
+		return false
+	}
+	if v.Price == 0 {
+		return false
+	}
+	return true
 }
