@@ -26,12 +26,11 @@ var (
 )
 
 type Product struct {
-	ID          string `json:"product_id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Brand       string `json:"brand"`
-	Category    string `json:"category"`
-	// SubCategory    string            `json:"sub_category"`
+	ID             string            `json:"product_id"`
+	Name           string            `json:"name"`
+	Description    string            `json:"description"`
+	Brand          string            `json:"brand"`
+	Category       string            `json:"category"`
 	Variations     []Variation       `json:"variations"`
 	Specifications map[string]string `json:"specifications"`
 	ReviewIDs      []string          `json:"review_ids"`
@@ -40,11 +39,11 @@ type Product struct {
 }
 
 type Variation struct {
-	Sku   string
-	Stock int
-	Size  string
-	Color string
-	Price float64
+	Sku   string  `json:"sku"`
+	Stock int     `json:"stock"`
+	Size  string  `json:"size"`
+	Color string  `json:"color"`
+	Price float64 `json:"price"`
 }
 
 func (p *Product) IsCanCreate() bool {

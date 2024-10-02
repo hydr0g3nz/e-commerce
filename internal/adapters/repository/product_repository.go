@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
@@ -57,9 +56,6 @@ func (r *ProductRepository) GetAll() ([]*domain.Product, error) {
 	err = cursor.All(context.Background(), &products)
 	if err != nil {
 		return nil, err
-	}
-	for _, v := range products {
-		fmt.Printf("%+v", v)
 	}
 	productDomainList := model.ProductListModelToDomainList(products)
 	return productDomainList, nil
