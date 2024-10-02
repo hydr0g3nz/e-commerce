@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -22,11 +24,13 @@ func main() {
 	categoryRepository := adapters.NewCategoryRepository(mongo)
 	categoryService := services.NewCategoryService(categoryRepository)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
-	productRepository := adapters.NewProductRepository(mongo)
+	productRepository := adapters.NewProductRepository(cfg, mongo)
 	productService := services.NewProductService(productRepository)
 	productHandler := handlers.NewProductHandler(productService)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 16 * 1024 * 1024,
+	})
 	// Middleware for logging requests
 	app.Use(logger.New())
 
@@ -57,7 +61,8 @@ func main() {
 	v1.Delete("/product/:prod_id/variant/:var_id", productHandler.RemoveVariation)
 	v1.Delete("/product/:prod_id", productHandler.DeleteProduct)
 	v1.Post("/product/variant/:prod_id", productHandler.AddVariation)
-
-	app.Listen("127.0.0.1:3000")
+	v1.Post("/product/image", productHandler.UploadImage)
+	v1.Static("/images", cfg.Upload.ServerPath)
+	app.Listen(fmt.Sprintf("127.0.0.1:%d", cfg.Server.Port))
 
 }

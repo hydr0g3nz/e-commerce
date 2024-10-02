@@ -2,7 +2,11 @@ package services
 
 import (
 	"errors"
+	"mime/multipart"
+	"path/filepath"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 	"github.com/hydr0g3nz/e-commerce/internal/core/ports"
 )
@@ -47,4 +51,14 @@ func (s *ProductService) AddVariation(productID string, variation *domain.Variat
 
 func (s *ProductService) RemoveVariation(productID string, variationID string) error {
 	return s.repo.RemoveVariation(productID, variationID)
+}
+
+func (s *ProductService) UploadImage(ctx *fiber.Ctx, file *multipart.FileHeader) (string, error) {
+	id, _ := uuid.NewV7()
+	filename := id.String() + filepath.Ext(file.Filename)
+	filepath := filepath.Join(s.repo.Config().Upload.UploadPath, "products", filename)
+	if err := ctx.SaveFile(file, filepath); err != nil {
+		return "", err
+	}
+	return filename, nil
 }

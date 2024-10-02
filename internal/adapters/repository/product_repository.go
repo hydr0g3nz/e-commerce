@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
+	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 	"github.com/hydr0g3nz/e-commerce/pkg/mongo/util"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,12 +13,16 @@ import (
 )
 
 type ProductRepository struct {
-	db *mongo.Database
+	db  *mongo.Database
+	cfg *config.Config
 }
 
-func NewProductRepository(db *mongo.Client) *ProductRepository {
+func (r *ProductRepository) Config() *config.Config {
+	return r.cfg
+}
+func NewProductRepository(cfg *config.Config, db *mongo.Client) *ProductRepository {
 	Db := db.Database("e-commerce")
-	return &ProductRepository{db: Db}
+	return &ProductRepository{db: Db, cfg: cfg}
 }
 
 func (r *ProductRepository) Create(p *domain.Product) error {

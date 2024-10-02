@@ -1,6 +1,9 @@
 package ports
 
-import "github.com/hydr0g3nz/e-commerce/internal/core/domain"
+import (
+	"github.com/hydr0g3nz/e-commerce/internal/config"
+	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
+)
 
 type CategoryRepository interface {
 	Create(category *domain.Category) error
@@ -12,6 +15,7 @@ type CategoryRepository interface {
 	RemoveProduct(categoryID string, productID string) error
 }
 type ProductRepository interface {
+	Config() *config.Config
 	Create(product *domain.Product) error
 	GetByID(id string) (*domain.Product, error)
 	GetAll() ([]*domain.Product, error)

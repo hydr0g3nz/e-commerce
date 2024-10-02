@@ -1,6 +1,8 @@
 package ports
 
-import "github.com/hydr0g3nz/e-commerce/internal/core/domain"
+import (
+	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
+)
 
 type CategoryService interface {
 	Create(category *domain.Category) error

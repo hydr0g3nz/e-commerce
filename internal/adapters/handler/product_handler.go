@@ -87,3 +87,15 @@ func (h *ProductHandler) RemoveVariation(ctx *fiber.Ctx) error {
 	}
 	return ctx.Status(fiber.StatusOK).SendString("Variation removed")
 }
+
+func (h *ProductHandler) UploadImage(ctx *fiber.Ctx) error {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	var fp string
+	if fp, err = h.service.UploadImage(ctx, file); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(fiber.Map{"filename": fp})
+}

@@ -11,6 +11,7 @@ type Config struct {
 	AppName  string         `mapstructure:"app_name"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"db"`
+	Upload   UploadConfig   `mapstructure:"upload"`
 }
 
 // ServerConfig holds server-related configurations.
@@ -27,6 +28,10 @@ type DatabaseConfig struct {
 	Host     string `mapstructure:"host"`
 	Name     string `mapstructure:"name"`
 	Port     string `mapstructure:"port"`
+}
+type UploadConfig struct {
+	UploadPath string `mapstructure:"upload_path"`
+	ServerPath string `mapstructure:"server_path"`
 }
 
 // LoadConfig loads the configuration from the YAML file and unmarshals it into the Config struct.
