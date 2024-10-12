@@ -35,15 +35,16 @@ type Product struct {
 	Specifications map[string]string `json:"specifications"`
 	ReviewIDs      []string          `json:"review_ids"`
 	Rating         float64           `json:"rating"`
-	Images         []string          `json:"images"`
 }
 
 type Variation struct {
-	Sku   string  `json:"sku"`
-	Stock int     `json:"stock"`
-	Size  string  `json:"size"`
-	Color string  `json:"color"`
-	Price float64 `json:"price"`
+	Images []string `json:"images"`
+	Sku    string   `json:"sku"`
+	Stock  int      `json:"stock"`
+	Size   string   `json:"size"`
+	Color  string   `json:"color"`
+	Price  float64  `json:"price"`
+	Sale   float32  `json:"sale"`
 }
 
 func (p *Product) IsCanCreate() bool {
@@ -65,9 +66,6 @@ func (p *Product) IsCanCreate() bool {
 	if p.Description == "" {
 		return false
 	}
-	if len(p.Images) == 0 {
-		return false
-	}
 	for _, v := range p.Variations {
 		if !v.IsCanAdd() {
 			return false
@@ -87,6 +85,13 @@ func (v *Variation) IsCanAdd() bool {
 		return false
 	}
 	if v.Price == 0 {
+		return false
+	}
+	if len(v.Images) == 0 {
+		return false
+	}
+
+	if v.Stock < 0 {
 		return false
 	}
 	return true

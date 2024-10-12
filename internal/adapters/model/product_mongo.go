@@ -15,7 +15,6 @@ type Product struct {
 	Specifications map[string]string  `json:"specifications"`
 	ReviewIDs      []string           `json:"review_ids"`
 	Rating         float64            `json:"rating"`
-	Images         []string           `json:"images"`
 }
 
 func ProductDomainToModel(product *domain.Product) *Product {
@@ -32,7 +31,6 @@ func ProductDomainToModel(product *domain.Product) *Product {
 		Specifications: product.Specifications,
 		ReviewIDs:      product.ReviewIDs,
 		Rating:         product.Rating,
-		Images:         product.Images,
 	}
 }
 
@@ -48,7 +46,6 @@ func ProductModelToDomain(product *Product) *domain.Product {
 		Specifications: product.Specifications,
 		ReviewIDs:      product.ReviewIDs,
 		Rating:         product.Rating,
-		Images:         product.Images,
 	}
 }
 
@@ -64,7 +61,6 @@ func (p *Product) Map() map[string]interface{} {
 		"specifications": p.Specifications,
 		"review_ids":     p.ReviewIDs,
 		"rating":         p.Rating,
-		"images":         p.Images,
 		"created_at":     p.CreatedAt,
 		"updated_at":     p.UpdatedAt,
 		"deleted_at":     p.DeletedAt,

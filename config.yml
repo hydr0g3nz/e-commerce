@@ -11,5 +11,5 @@ db:
   password : pass
   name : e-commerce
 upload:
-  upload_path : E:\h_lab\nextjs\e-commecre\e-commerce-learn\public
-  server_path : E:\h_lab\nextjs\e-commecre\e-commerce-learn\public
+  upload_path : E:\h_lab\nextjs\e-commecre\my_ecommerce\public
+  server_path : E:\h_lab\nextjs\e-commecre\my_ecommerce\public
