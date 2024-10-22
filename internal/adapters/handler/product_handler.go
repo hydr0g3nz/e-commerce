@@ -99,3 +99,16 @@ func (h *ProductHandler) UploadImage(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(fiber.Map{"filename": fp})
 }
+func (h *ProductHandler) DeleteImage(ctx *fiber.Ctx) error {
+	filename := ctx.Params("filename")
+	if filename == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "filename is required"})
+	}
+	if err := h.service.DeleteImage(filename); err != nil {
+		if err.Error() == "file not found" {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).SendString("Image deleted")
+}

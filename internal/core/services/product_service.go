@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,4 +63,22 @@ func (s *ProductService) UploadImage(ctx *fiber.Ctx, file *multipart.FileHeader)
 		return "", err
 	}
 	return filename, nil
+}
+func (s *ProductService) DeleteImage(filename string) error {
+	filename = filepath.Join(s.repo.Config().Upload.UploadPath, "products", filename)
+	// Check if file exists
+	_, err := os.Stat(filename)
+	fmt.Println(s.repo.Config().Upload.UploadPath + filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return errors.New("file not found")
+		}
+		return fmt.Errorf("error checking file: %v", err)
+	}
+	// Delete the file
+	err = os.Remove(filename)
+	if err != nil {
+		return fmt.Errorf("error deleting file: %v", err)
+	}
+	return nil
 }

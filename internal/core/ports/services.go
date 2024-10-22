@@ -1,6 +1,9 @@
 package ports
 
 import (
+	"mime/multipart"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 )
 
@@ -21,4 +24,6 @@ type ProductService interface {
 	Delete(id string) error
 	AddVariation(productID string, variation *domain.Variation) error
 	RemoveVariation(productID string, variationID string) error
+	UploadImage(ctx *fiber.Ctx, file *multipart.FileHeader) (string, error)
+	DeleteImage(filename string) (string, error)
 }

@@ -62,6 +62,7 @@ func main() {
 	v1.Delete("/product/:prod_id", productHandler.DeleteProduct)
 	v1.Post("/product/variant/:prod_id", productHandler.AddVariation)
 	v1.Post("/product/image", productHandler.UploadImage)
+	v1.Delete("/product/image/:filename", productHandler.DeleteImage)
 	v1.Static("/images", cfg.Upload.ServerPath)
 	app.Listen(fmt.Sprintf("127.0.0.1:%d", cfg.Server.Port))
 
