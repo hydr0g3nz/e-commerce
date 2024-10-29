@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	handlers "github.com/hydr0g3nz/e-commerce/internal/adapters/handler"
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/middleware"
 	adapters "github.com/hydr0g3nz/e-commerce/internal/adapters/repository"
 	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/services"
@@ -21,12 +22,18 @@ func main() {
 	}
 
 	mongo := mongoDb.DBConn(cfg)
+
 	categoryRepository := adapters.NewCategoryRepository(mongo)
 	categoryService := services.NewCategoryService(categoryRepository)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
+
 	productRepository := adapters.NewProductRepository(cfg, mongo)
 	productService := services.NewProductService(productRepository)
 	productHandler := handlers.NewProductHandler(productService)
+
+	authRepository := adapters.NewAuthRepository(mongo)
+	authService := services.NewAuthService(cfg.Key.AccessToken, cfg.Key.RefreshToken, authRepository)
+	authHandler := handlers.NewAuthHandler(authService)
 
 	app := fiber.New(fiber.Config{
 		BodyLimit: 16 * 1024 * 1024,
@@ -39,11 +46,16 @@ func main() {
 
 	// Middleware for CORS (Cross-Origin Resource Sharing)
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000", // Customize allowed origins
-		AllowMethods: "GET,POST,PUT,DELETE",   // Customize allowed methods
+		AllowOrigins: "*",
+		AllowHeaders: "*",
+		AllowMethods: "*",
+		Next:         nil,
 	}))
 
+	middleware := middleware.NewAuthMiddleware(cfg.Key.AccessToken)
+
 	api := app.Group(cfg.Server.Path)
+	api.Use(middleware.AuthenticateJWT())
 	v1 := api.Group("/v1")
 	//category
 	v1.Get("/category", categoryHandler.GetCategoryAll)
@@ -64,6 +76,11 @@ func main() {
 	v1.Post("/product/image", productHandler.UploadImage)
 	v1.Delete("/product/image/:filename", productHandler.DeleteImage)
 	v1.Static("/images", cfg.Upload.ServerPath)
-	app.Listen(fmt.Sprintf("127.0.0.1:%d", cfg.Server.Port))
+	//auth
+	v1.Post("/auth/login", authHandler.Login)
+	v1.Post("/auth/register", authHandler.Register)
+	v1.Post("/auth/refresh", authHandler.Refresh)
+
+	app.Listen(fmt.Sprintf("0.0.0.0:%d", cfg.Server.Port))
 
 }

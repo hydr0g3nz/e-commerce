@@ -5,19 +5,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
-	"github.com/hydr0g3nz/e-commerce/internal/core/services"
+	"github.com/hydr0g3nz/e-commerce/internal/core/ports"
 )
 
 type CategoryHandler struct {
-	service *services.CategoryService
+	service ports.CategoryService
 }
 
-func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
+func NewCategoryHandler(service ports.CategoryService) *CategoryHandler {
 	return &CategoryHandler{service: service}
 }
 
 func (h *CategoryHandler) GetCategoryAll(ctx *fiber.Ctx) error {
-	category, err := h.service.GetCategoryAll()
+	category, err := h.service.GetAll()
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -26,7 +26,7 @@ func (h *CategoryHandler) GetCategoryAll(ctx *fiber.Ctx) error {
 func (h *CategoryHandler) GetCategory(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	fmt.Println("id", id)
-	category, err := h.service.GetCategory(id)
+	category, err := h.service.GetByID(id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -40,7 +40,7 @@ func (h *CategoryHandler) CreateCategory(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	fmt.Println("category", category)
-	err = h.service.CreateCategory(category)
+	err = h.service.Create(category)
 	if err != nil {
 		fmt.Println("Error creating category:", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -55,7 +55,7 @@ func (h *CategoryHandler) UpdateCategory(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	fmt.Println("category", category)
-	err = h.service.UpdateCategory(category)
+	err = h.service.Update(category)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -64,7 +64,7 @@ func (h *CategoryHandler) UpdateCategory(ctx *fiber.Ctx) error {
 
 func (h *CategoryHandler) DeleteCategory(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
-	err := h.service.DeleteCategory(id)
+	err := h.service.Delete(id)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

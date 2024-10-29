@@ -12,6 +12,7 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"db"`
 	Upload   UploadConfig   `mapstructure:"upload"`
+	Key      KeyConfig      `mapstructure:"key"`
 }
 
 // ServerConfig holds server-related configurations.
@@ -19,6 +20,10 @@ type ServerConfig struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
 	Path string `mapstructure:"path"`
+}
+type KeyConfig struct {
+	AccessToken  string `mapstructure:"access_token"`
+	RefreshToken string `mapstructure:"refresh_token"`
 }
 
 // DatabaseConfig holds database-related configurations.

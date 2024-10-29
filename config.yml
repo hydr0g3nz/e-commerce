@@ -1,4 +1,7 @@
 app_name : e-commerce
+key :
+  access_token: "123"
+  refresh_token: "123"
 server:
   host : 0.0.0.0
   port: 8080

@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 )
@@ -23,4 +24,17 @@ type ProductRepository interface {
 	Delete(id string) error
 	AddVariation(productID string, variation *domain.Variation) error
 	RemoveVariation(productID string, variationID string) error
+}
+
+type AuthRepository interface {
+	// CreateUser(user *domain.User) error
+	// GetUserByEmail(email string) (*domain.User, error)
+	// GetUserByID(id string) (*domain.User, error)
+	// UpdateUser(user *domain.User) error
+	// DeleteUser(id string) error
+	FindByEmail(email string) (*domain.User, error)
+	CreateRefreshToken(userId string, metadata *domain.TokenMetadata) error
+	FetchRefreshToken(userId string) (*model.RefreshToken, error)
+	EmailExists(email string) bool
+	Create(user *domain.User) error
 }
