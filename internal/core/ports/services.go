@@ -32,6 +32,6 @@ type AuthService interface {
 	ValidateCredentials(email, password string) (*domain.User, error)
 	Login(credentials *domain.UserCredentials) (*domain.User, *domain.TokenResponse, error)
 	RefreshAccessToken(refreshToken string) (*domain.TokenResponse, error)
-	GenerateTokenPair(userId string) (*domain.TokenResponse, error)
+	GenerateTokenPair(userId string, role string) (*domain.TokenResponse, error)
 	Register(request *domain.User) (*domain.TokenResponse, error)
 }

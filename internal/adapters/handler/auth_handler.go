@@ -37,7 +37,6 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 			"details": err.Error(),
 		})
 	}
-
 	// Attempt login
 	user, token, err := h.service.Login(credentials)
 	if err != nil {

@@ -25,9 +25,9 @@ func NewAuthService(accessSecret, refreshSecret string, repository ports.AuthRep
 		repository:    repository,
 	}
 }
-func (s *AuthService) GenerateTokenPair(userId string) (*domain.TokenResponse, error) {
+func (s *AuthService) GenerateTokenPair(userId string, role string) (*domain.TokenResponse, error) {
 	// Generate access token
-	accessToken, expiresIn, err := s.createAccessToken(userId, "user")
+	accessToken, expiresIn, err := s.createAccessToken(userId, role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create access token: %w", err)
 	}
@@ -163,7 +163,7 @@ func (s *AuthService) Login(credentials *domain.UserCredentials) (*domain.User, 
 	}
 
 	// Generate token pair
-	tokenDetails, err := s.GenerateTokenPair(user.ID)
+	tokenDetails, err := s.GenerateTokenPair(user.ID, user.Role)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -226,7 +226,7 @@ func (s *AuthService) Register(request *domain.User) (*domain.TokenResponse, err
 	}
 	fmt.Printf("user : %+v", user)
 	// Generate tokens
-	tokenDetails, err := s.GenerateTokenPair(user.ID)
+	tokenDetails, err := s.GenerateTokenPair(user.ID, "user")
 	if err != nil {
 		return nil, fmt.Errorf("error generating tokens: %w", err)
 	}
