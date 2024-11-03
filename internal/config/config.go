@@ -13,6 +13,7 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"db"`
 	Upload   UploadConfig   `mapstructure:"upload"`
 	Key      KeyConfig      `mapstructure:"key"`
+	Amqp     AmqpConfig     `mapstructure:"amqp"`
 }
 
 // ServerConfig holds server-related configurations.
@@ -37,6 +38,9 @@ type DatabaseConfig struct {
 type UploadConfig struct {
 	UploadPath string `mapstructure:"upload_path"`
 	ServerPath string `mapstructure:"server_path"`
+}
+type AmqpConfig struct {
+	Url string `mapstructure:"url"`
 }
 
 // LoadConfig loads the configuration from the YAML file and unmarshals it into the Config struct.

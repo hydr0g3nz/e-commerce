@@ -35,6 +35,13 @@ func main() {
 	authService := services.NewAuthService(cfg.Key.AccessToken, cfg.Key.RefreshToken, authRepository)
 	authHandler := handlers.NewAuthHandler(authService)
 
+	orderRepository := adapters.NewOrderRepository(mongo)
+	orderService, err := services.NewOrderService(orderRepository, productRepository, cfg.Amqp.Url)
+	if err != nil {
+		panic(err)
+	}
+	orderHandler := handlers.NewOrderHandler(orderService)
+
 	app := fiber.New(fiber.Config{
 		BodyLimit: 16 * 1024 * 1024,
 	})
@@ -76,11 +83,13 @@ func main() {
 	v1.Post("/product/image", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.UploadImage)
 	v1.Delete("/product/image/:filename", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.DeleteImage)
 	v1.Static("/images", cfg.Upload.ServerPath)
+	//orders
+	v1.Post("/order", m.AuthenticateJWT(), orderHandler.CreateOrder)
 	//auth
 	v1.Post("/auth/login", authHandler.Login)
 	v1.Post("/auth/register", authHandler.Register)
 	v1.Post("/auth/refresh", authHandler.Refresh)
 
-	app.Listen(fmt.Sprintf("0.0.0.0:%d", cfg.Server.Port))
+	app.Listen(fmt.Sprintf("127.0.0.1:%d", cfg.Server.Port))
 
 }

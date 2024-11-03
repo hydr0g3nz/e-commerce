@@ -1,6 +1,8 @@
 package ports
 
 import (
+	"context"
+
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
@@ -24,6 +26,9 @@ type ProductRepository interface {
 	Delete(id string) error
 	AddVariation(productID string, variation *domain.Variation) error
 	RemoveVariation(productID string, variationID string) error
+	GetProductBySku(ctx context.Context, productId, sku string) (*domain.Product, error)
+	ReserveStock(ctx context.Context, productId, sku string, quantity int) error
+	ReleaseStock(ctx context.Context, productId, sku string, quantity int) error
 }
 
 type AuthRepository interface {
@@ -37,4 +42,8 @@ type AuthRepository interface {
 	FetchRefreshToken(userId string) (*model.RefreshToken, error)
 	EmailExists(email string) bool
 	Create(user *domain.User) error
+}
+type OrderRepository interface {
+	Create(ctx context.Context, order *domain.Order) error
+	UpdateStatus(ctx context.Context, orderID, status string) error
 }

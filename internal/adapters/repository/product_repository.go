@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
@@ -10,6 +11,7 @@ import (
 	"github.com/hydr0g3nz/e-commerce/pkg/mongo/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ProductRepository struct {
@@ -82,4 +84,176 @@ func (r *ProductRepository) RemoveVariation(productID string, variationID string
 	}
 	_, err := r.db.Collection("product").UpdateOne(context.Background(), bson.M{"_id": productID}, update)
 	return err
+}
+func (r *ProductRepository) GetProductBySku(ctx context.Context, productId, sku string) (*domain.Product, error) {
+	collection := r.db.Collection(productCollection)
+
+	var product domain.Product
+	err := collection.FindOne(ctx, bson.M{
+		"_id":            productId,
+		"variations.sku": sku,
+	}).Decode(&product)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("product not found")
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
+func (r *ProductRepository) ReserveStock(ctx context.Context, productId, sku string, quantity int) error {
+	collection := r.db.Collection(productCollection)
+
+	// Start a session for the transaction
+	session, err := r.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	// Start a transaction
+	callback := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		// First, check if we have enough stock
+		filter := bson.M{
+			"_id":              productId,
+			"variations.sku":   sku,
+			"variations.stock": bson.M{"$gte": quantity},
+		}
+
+		update := bson.M{
+			"$inc": bson.M{
+				"variations.$.stock": -quantity,
+			},
+		}
+
+		arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.M{"elem.sku": sku},
+			},
+		})
+
+		result, err := collection.UpdateOne(
+			sessCtx,
+			filter,
+			update,
+			arrayFilters,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if result.MatchedCount == 0 {
+			return nil, errors.New("insufficient stock or product not found")
+		}
+
+		return nil, nil
+	}
+
+	_, err = session.WithTransaction(ctx, callback)
+	return err
+}
+
+func (r *ProductRepository) ReleaseStock(ctx context.Context, productId, sku string, quantity int) error {
+	collection := r.db.Collection(productCollection)
+
+	update := bson.M{
+		"$inc": bson.M{
+			"variations.$.stock": quantity,
+		},
+	}
+
+	arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"elem.sku": sku},
+		},
+	})
+
+	result, err := collection.UpdateOne(
+		ctx,
+		bson.M{"_id": productId, "variations.sku": sku},
+		update,
+		arrayFilters,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("product not found")
+	}
+
+	return nil
+}
+
+// Additional helper methods for product repository
+
+func (r *ProductRepository) UpdateProductPrice(ctx context.Context, sku string, price float64) error {
+	collection := r.db.Collection(productCollection)
+
+	update := bson.M{
+		"$set": bson.M{
+			"variations.$.price": price,
+		},
+	}
+
+	arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"elem.sku": sku},
+		},
+	})
+
+	result, err := collection.UpdateOne(
+		ctx,
+		bson.M{"variations.sku": sku},
+		update,
+		arrayFilters,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("product not found")
+	}
+
+	return nil
+}
+
+func (r *ProductRepository) UpdateSale(ctx context.Context, sku string, salePercentage float32) error {
+	collection := r.db.Collection(productCollection)
+
+	update := bson.M{
+		"$set": bson.M{
+			"variations.$.sale": salePercentage,
+		},
+	}
+
+	arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"elem.sku": sku},
+		},
+	})
+
+	result, err := collection.UpdateOne(
+		ctx,
+		bson.M{"variations.sku": sku},
+		update,
+		arrayFilters,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("product not found")
+	}
+
+	return nil
 }
