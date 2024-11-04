@@ -163,7 +163,7 @@ func (s *OrderService) validateAndCalculateOrder(ctx context.Context, order *dom
 		}
 
 		// Update item with current price and sale
-		order.Items[i].Price = int(finalPrice)
+		order.Items[i].Price = float64(finalPrice)
 		order.Items[i].Sale = int(variation.Sale)
 
 		totalPrice += float64(item.Quantity) * finalPrice

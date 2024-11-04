@@ -231,7 +231,7 @@ func (r *AuthRepository) FindByEmail(email string) (*domain.User, error) {
 
 	collection := r.db.Collection("users")
 
-	var user domain.User
+	var user model.User
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -240,7 +240,7 @@ func (r *AuthRepository) FindByEmail(email string) (*domain.User, error) {
 		return nil, err
 	}
 
-	return &user, nil
+	return user.Domain(), nil
 }
 
 func (r *AuthRepository) Create(user *domain.User) error {

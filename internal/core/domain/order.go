@@ -16,11 +16,11 @@ type Order struct {
 	PaymentMethod   string    `json:"payment_method"`
 }
 type Item struct {
-	Id       string `json:"product_id"`
-	Sku      string `json:"sku"`
-	Quantity int    `json:"quantity"`
-	Price    int    `json:"price"`
-	Sale     int    `json:"sale"`
+	Id       string  `json:"product_id"`
+	Sku      string  `json:"sku"`
+	Quantity int     `json:"quantity"`
+	Price    float64 `json:"price"`
+	Sale     int     `json:"sale"`
 }
 
 func (o *Order) ValidateCreate() error {
