@@ -44,6 +44,6 @@ type AuthRepository interface {
 	Create(user *domain.User) error
 }
 type OrderRepository interface {
-	Create(ctx context.Context, order *domain.Order) error
+	Create(ctx context.Context, order *domain.Order) (string, error)
 	UpdateStatus(ctx context.Context, orderID, status string) error
 }

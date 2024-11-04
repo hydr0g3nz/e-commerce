@@ -40,6 +40,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// Start reservation consumer
+	orderService.StartReservationConsumer()
+	defer orderService.Close()
 	orderHandler := handlers.NewOrderHandler(orderService)
 
 	app := fiber.New(fiber.Config{

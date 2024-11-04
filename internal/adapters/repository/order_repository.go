@@ -53,16 +53,16 @@ func (r *OrderRepository) ensureIndexes() error {
 	return err
 }
 
-func (r *OrderRepository) Create(ctx context.Context, order *domain.Order) error {
+func (r *OrderRepository) Create(ctx context.Context, order *domain.Order) (string, error) {
 	collection := r.db.Collection(orderCollection)
 	m := model.DomainOrderToModel(order)
 	m.BeforeCreate()
 	_, err := collection.InsertOne(ctx, m)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return m.ID, nil
 }
 
 func (r *OrderRepository) UpdateStatus(ctx context.Context, orderID, status string) error {

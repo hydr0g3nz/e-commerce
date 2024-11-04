@@ -19,15 +19,16 @@ const (
 	OrderStatusFailed     = "failed"
 	OrderStatusCancelled  = "cancelled"
 	ReservationTimeout    = 15 * time.Minute
-	ReservationQueueName  = "product_reservations"
+	ReservationQueueName  = "product.reserve"
 	ReservationRoutingKey = "product.reserve"
 	ReservationExchange   = "order_events"
 )
 
 type ReservationMessage struct {
-	OrderID   string        `json:"order_id"`
-	Items     []domain.Item `json:"items"`
-	Timestamp time.Time     `json:"timestamp"`
+	OrderID    string        `json:"order_id"`
+	Items      []domain.Item `json:"items"`
+	Timestamp  time.Time     `json:"timestamp"`
+	RetryCount int           `json:"retry_count"`
 }
 
 type OrderService struct {
@@ -35,6 +36,7 @@ type OrderService struct {
 	productRepo    ports.ProductRepository
 	amqpChannel    *amqp.Channel
 	amqpConnection *amqp.Connection
+	amqpQueueName  string
 }
 
 func NewOrderService(
@@ -44,11 +46,13 @@ func NewOrderService(
 ) (*OrderService, error) {
 	conn, err := amqp.Dial(amqpURL)
 	if err != nil {
+		fmt.Println("Error connecting to RabbitMQ:", err)
 		return nil, err
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
+		fmt.Println("Error creating channel:", err)
 		return nil, err
 	}
 
@@ -67,13 +71,15 @@ func NewOrderService(
 	}
 
 	// Declare queue
-	_, err = ch.QueueDeclare(
-		ReservationQueueName,
-		true,
+	q, err := ch.QueueDeclare(
+		"",
 		false,
 		false,
 		false,
-		nil,
+		false,
+		amqp.Table{
+			"x-dead-letter-exchange": "ecom_dlx",
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -81,7 +87,7 @@ func NewOrderService(
 
 	// Bind queue to exchange
 	err = ch.QueueBind(
-		ReservationQueueName,
+		q.Name,
 		ReservationRoutingKey,
 		ReservationExchange,
 		false,
@@ -90,12 +96,12 @@ func NewOrderService(
 	if err != nil {
 		return nil, err
 	}
-
 	return &OrderService{
 		orderRepo:      orderRepo,
 		productRepo:    productRepo,
 		amqpChannel:    ch,
 		amqpConnection: conn,
+		amqpQueueName:  q.Name,
 	}, nil
 }
 
@@ -104,14 +110,18 @@ func (s *OrderService) CreateOrder(ctx context.Context, order *domain.Order) err
 	order.Status = OrderStatusPending
 	// Validate items and calculate total price
 	if err := s.validateAndCalculateOrder(ctx, order); err != nil {
-		return err
-	}
-	// Try to reserve products
-	if err := s.sendReservationRequest(order); err != nil {
+		fmt.Println("Error validating and calculating order:", err)
 		return err
 	}
 	// Save order
-	if err := s.orderRepo.Create(ctx, order); err != nil {
+	orderId, err := s.orderRepo.Create(ctx, order)
+	if err != nil {
+		return err
+	}
+	order.ID = orderId
+	// Try to reserve products
+	if err := s.sendReservationRequest(order); err != nil {
+		fmt.Println("Error sending reservation request:", err)
 		return err
 	}
 
@@ -165,16 +175,16 @@ func (s *OrderService) validateAndCalculateOrder(ctx context.Context, order *dom
 
 func (s *OrderService) sendReservationRequest(order *domain.Order) error {
 	msg := ReservationMessage{
-		OrderID:   order.ID,
-		Items:     order.Items,
-		Timestamp: time.Now(),
+		OrderID:    order.ID,
+		Items:      order.Items,
+		Timestamp:  time.Now(),
+		RetryCount: 0,
 	}
 
 	body, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
-	fmt.Println("send reservation request", string(body))
 	return s.amqpChannel.PublishWithContext(
 		context.Background(),
 		ReservationExchange,
@@ -184,14 +194,14 @@ func (s *OrderService) sendReservationRequest(order *domain.Order) error {
 		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        body,
-			Expiration:  (ReservationTimeout).String(),
+			// Expiration:  (ReservationTimeout).String(),
 		},
 	)
 }
 
 func (s *OrderService) StartReservationConsumer() error {
 	msgs, err := s.amqpChannel.Consume(
-		ReservationQueueName,
+		s.amqpQueueName,
 		"",
 		false,
 		false,
@@ -202,21 +212,45 @@ func (s *OrderService) StartReservationConsumer() error {
 	if err != nil {
 		return err
 	}
-
 	go func() {
 		for msg := range msgs {
 			var reservation ReservationMessage
 			if err := json.Unmarshal(msg.Body, &reservation); err != nil {
+				fmt.Println("error unmarshalling reservation", err)
 				msg.Nack(false, true)
 				continue
 			}
-
+			if reservation.RetryCount >= 3 {
+				msg.Reject(false)
+				continue
+			}
 			// Process reservation
 			if err := s.processReservation(context.Background(), &reservation); err != nil {
-				msg.Nack(false, true)
+				fmt.Println("error processing reservation", err)
+				reservation.RetryCount++
+				msgBody, err := json.Marshal(reservation)
+				if err != nil {
+					fmt.Println("error marshalling reservation", err)
+					continue
+				}
+				err = s.amqpChannel.PublishWithContext(
+					context.Background(),
+					ReservationExchange,
+					ReservationRoutingKey,
+					false,
+					false,
+					amqp.Publishing{
+						ContentType: "application/json",
+						Body:        msgBody,
+					},
+				)
+				if err != nil {
+					fmt.Println("error publishing reservation", err)
+					continue
+				}
+				msg.Ack(false)
 				continue
 			}
-
 			msg.Ack(false)
 		}
 	}()
@@ -225,7 +259,6 @@ func (s *OrderService) StartReservationConsumer() error {
 }
 
 func (s *OrderService) processReservation(ctx context.Context, msg *ReservationMessage) error {
-	fmt.Println("process reservation", msg)
 	// Update order status to processing
 	if err := s.orderRepo.UpdateStatus(ctx, msg.OrderID, OrderStatusProcessing); err != nil {
 		return err
@@ -235,8 +268,11 @@ func (s *OrderService) processReservation(ctx context.Context, msg *ReservationM
 	for _, item := range msg.Items {
 		if err := s.productRepo.ReserveStock(ctx, item.Id, item.Sku, item.Quantity); err != nil {
 			// If reservation fails, release all previous reservations
+			fmt.Println("reservation failed", err)
 			s.rollbackReservations(ctx, msg.OrderID, msg.Items)
-			s.orderRepo.UpdateStatus(ctx, msg.OrderID, OrderStatusFailed)
+			if err := s.orderRepo.UpdateStatus(ctx, msg.OrderID, OrderStatusFailed); err != nil {
+				return err
+			}
 			return err
 		}
 	}

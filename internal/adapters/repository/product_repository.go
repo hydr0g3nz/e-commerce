@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
@@ -15,8 +16,10 @@ import (
 )
 
 type ProductRepository struct {
-	db  *mongo.Database
-	cfg *config.Config
+	db         *mongo.Database
+	cfg        *config.Config
+	locks      map[string]*sync.Mutex
+	locksMutex sync.RWMutex
 }
 
 func (r *ProductRepository) Config() *config.Config {
@@ -24,7 +27,7 @@ func (r *ProductRepository) Config() *config.Config {
 }
 func NewProductRepository(cfg *config.Config, db *mongo.Client) *ProductRepository {
 	Db := db.Database("e-commerce")
-	return &ProductRepository{db: Db, cfg: cfg}
+	return &ProductRepository{db: Db, cfg: cfg, locks: make(map[string]*sync.Mutex)}
 }
 
 func (r *ProductRepository) Create(p *domain.Product) error {
@@ -104,57 +107,74 @@ func (r *ProductRepository) GetProductBySku(ctx context.Context, productId, sku 
 	return &product, nil
 }
 
-func (r *ProductRepository) ReserveStock(ctx context.Context, productId, sku string, quantity int) error {
-	collection := r.db.Collection(productCollection)
+func (r *ProductRepository) getProductLock(productId string) *sync.Mutex {
+	r.locksMutex.RLock()
+	if mu, exists := r.locks[productId]; exists {
+		r.locksMutex.RUnlock()
+		return mu
+	}
+	r.locksMutex.RUnlock()
 
-	// Start a session for the transaction
-	session, err := r.db.Client().StartSession()
+	// If we get here, we need to create a new mutex
+	r.locksMutex.Lock()
+	defer r.locksMutex.Unlock()
+
+	// Double-check in case another goroutine created it
+	if mu, exists := r.locks[productId]; exists {
+		return mu
+	}
+
+	// Create new mutex
+	mu := &sync.Mutex{}
+	r.locks[productId] = mu
+	return mu
+}
+
+func (r *ProductRepository) ReserveStock(ctx context.Context, productId, sku string, quantity int) error {
+	// Get the mutex for this product
+	mu := r.getProductLock(productId)
+
+	// Lock the mutex
+	mu.Lock()
+	defer mu.Unlock()
+	collection := r.db.Collection("product")
+
+	filter := bson.M{
+		"_id":              productId,
+		"variations.sku":   sku,
+		"variations.stock": bson.M{"$gte": quantity}, // Check stock in filter
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"variations.$[elem].stock": -quantity, // Changed from $ to $[elem]
+		},
+	}
+
+	// Configure array filters correctly
+	opts := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"elem.sku": sku},
+		},
+	})
+
+	result, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		return err
 	}
-	defer session.EndSession(ctx)
 
-	// Start a transaction
-	callback := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		// First, check if we have enough stock
-		filter := bson.M{
-			"_id":              productId,
-			"variations.sku":   sku,
-			"variations.stock": bson.M{"$gte": quantity},
-		}
-
-		update := bson.M{
-			"$inc": bson.M{
-				"variations.$.stock": -quantity,
-			},
-		}
-
-		arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
-			Filters: []interface{}{
-				bson.M{"elem.sku": sku},
-			},
-		})
-
-		result, err := collection.UpdateOne(
-			sessCtx,
-			filter,
-			update,
-			arrayFilters,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if result.MatchedCount == 0 {
-			return nil, errors.New("insufficient stock or product not found")
-		}
-
-		return nil, nil
+	if result.MatchedCount == 0 {
+		return errors.New("insufficient stock or product not found")
 	}
 
-	_, err = session.WithTransaction(ctx, callback)
-	return err
+	return nil
+}
+
+// Cleanup method to remove unused locks (optional)
+func (r *ProductRepository) CleanupLock(productId string) {
+	r.locksMutex.Lock()
+	defer r.locksMutex.Unlock()
+	delete(r.locks, productId)
 }
 
 func (r *ProductRepository) ReleaseStock(ctx context.Context, productId, sku string, quantity int) error {
