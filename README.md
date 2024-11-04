@@ -90,23 +90,25 @@ POST   /api/v1/order  # Create order (Authenticated)
 Create a `config.yml` file in the root directory:
 
 ```yaml
-server:
-  port: 8080
-  path: "/api"
-
-mongo:
-  uri: "mongodb://localhost:27017"
-  database: "e-commerce"
-
-key:
+app_name : e-commerce
+key :
   accessToken: "your-access-token-secret"
   refreshToken: "your-refresh-token-secret"
-
+server:
+  host : 0.0.0.0
+  port: 8080
+  path : /api
 amqp:
-  url: "amqp://guest:guest@localhost:5672/"
-
+  url : amqp://guest:guest@localhost:5672/
+db:
+  host : localhost
+  port : "27018"
+  user : username
+  password : password
+  name : e-commerce
 upload:
-  serverPath: "./uploads"
+  upload_path : /frontend_project/public
+  server_path : /frontend_project/public
 ```
 
 ### Running with Docker
