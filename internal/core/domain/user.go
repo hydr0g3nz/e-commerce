@@ -5,10 +5,12 @@ package domain
 //   "email": "john@example.com",
 
 type User struct {
-	ID      string  `json:"user_id"`
-	Name    string  `json:"name"`
-	Email   string  `json:"email"`
-	Address Address `json:"address"`
+	ID       string    `json:"user_id"`
+	Password string    `json:"password,omitempty" validate:"required,min=8"`
+	Name     string    `json:"name" validate:"required,min=2"`
+	Email    string    `json:"email" validate:"required,email"`
+	Role     string    `json:"role"`
+	Address  []Address `json:"address"`
 }
 type Address struct {
 	Street  string `json:"street"`

@@ -20,26 +20,79 @@ package domain
 // 	  "image_url_2.jpg"
 // 	]
 //   }
+var (
+	ErrInvalidProduct   = "invalid product"
+	ErrInvalidVariation = "invalid variation"
+)
 
 type Product struct {
-	Id             string            `json:"id"`
+	ID             string            `json:"product_id"`
 	Name           string            `json:"name"`
 	Description    string            `json:"description"`
 	Brand          string            `json:"brand"`
 	Category       string            `json:"category"`
-	SubCategory    string            `json:"sub_category"`
-	BasePrice      float64           `json:"price"`
 	Variations     []Variation       `json:"variations"`
 	Specifications map[string]string `json:"specifications"`
 	ReviewIDs      []string          `json:"review_ids"`
 	Rating         float64           `json:"rating"`
-	Images         []string          `json:"images"`
 }
 
 type Variation struct {
-	Sku   string
-	Stock int
-	Size  int
-	Color string
-	Price float64
+	Images []string `json:"images"`
+	Sku    string   `json:"sku"`
+	Stock  int      `json:"stock"`
+	Size   string   `json:"size"`
+	Color  string   `json:"color"`
+	Price  float64  `json:"price"`
+	Sale   float32  `json:"sale"`
+}
+
+func (p *Product) IsCanCreate() bool {
+	if p.Name == "" {
+		return false
+	}
+	if p.Category == "" {
+		return false
+	}
+	if p.Brand == "" {
+		return false
+	}
+	if len(p.Variations) == 0 {
+		return false
+	}
+	if len(p.Specifications) == 0 {
+		return false
+	}
+	if p.Description == "" {
+		return false
+	}
+	for _, v := range p.Variations {
+		if !v.IsCanAdd() {
+			return false
+		}
+	}
+	return true
+}
+
+func (v *Variation) IsCanAdd() bool {
+	if v.Sku == "" {
+		return false
+	}
+	if v.Size == "" {
+		return false
+	}
+	if v.Color == "" {
+		return false
+	}
+	if v.Price == 0 {
+		return false
+	}
+	if len(v.Images) == 0 {
+		return false
+	}
+
+	if v.Stock < 0 {
+		return false
+	}
+	return true
 }

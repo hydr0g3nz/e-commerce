@@ -11,6 +11,9 @@ type Config struct {
 	AppName  string         `mapstructure:"app_name"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"db"`
+	Upload   UploadConfig   `mapstructure:"upload"`
+	Key      KeyConfig      `mapstructure:"key"`
+	Amqp     AmqpConfig     `mapstructure:"amqp"`
 }
 
 // ServerConfig holds server-related configurations.
@@ -18,6 +21,10 @@ type ServerConfig struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
 	Path string `mapstructure:"path"`
+}
+type KeyConfig struct {
+	AccessToken  string `mapstructure:"access_token"`
+	RefreshToken string `mapstructure:"refresh_token"`
 }
 
 // DatabaseConfig holds database-related configurations.
@@ -27,6 +34,13 @@ type DatabaseConfig struct {
 	Host     string `mapstructure:"host"`
 	Name     string `mapstructure:"name"`
 	Port     string `mapstructure:"port"`
+}
+type UploadConfig struct {
+	UploadPath string `mapstructure:"upload_path"`
+	ServerPath string `mapstructure:"server_path"`
+}
+type AmqpConfig struct {
+	Url string `mapstructure:"url"`
 }
 
 // LoadConfig loads the configuration from the YAML file and unmarshals it into the Config struct.
