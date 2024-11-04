@@ -60,7 +60,7 @@ debug
 /temp/
 /uploads/
 /public/uploads/
-/config.yml
+config.yaml
 /config.local.yml
 *.pem
 *.key
