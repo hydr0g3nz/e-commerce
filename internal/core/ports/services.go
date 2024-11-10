@@ -1,9 +1,11 @@
 package ports
 
 import (
+	"context"
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/dto"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 )
 
@@ -26,6 +28,12 @@ type ProductService interface {
 	RemoveVariation(productID string, variationID string) error
 	UploadImage(ctx *fiber.Ctx, file *multipart.FileHeader) (string, error)
 	DeleteImage(filename string) (string, error)
+	SetProductList(product []dto.ProductListPage) error
+	GetProductList(ctx context.Context) ([]dto.ProductListPage, error)
+	InitProductList(ctx context.Context) error
+	SetProductHeroList() error
+	GetProductHeroList(ctx context.Context) ([]dto.ProductListPage, error)
+	InitProductHeroList(ctx context.Context) error
 }
 
 type AuthService interface {

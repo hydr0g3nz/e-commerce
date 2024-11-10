@@ -1,14 +1,17 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/dto"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 	"github.com/hydr0g3nz/e-commerce/internal/core/ports"
 )
@@ -81,4 +84,100 @@ func (s *ProductService) DeleteImage(filename string) error {
 		return fmt.Errorf("error deleting file: %v", err)
 	}
 	return nil
+}
+
+func (s *ProductService) SetProductList(product []dto.ProductListPage) error {
+	if len(product) == 0 {
+		productDbList, err := s.GetAll()
+		if err != nil {
+			return err
+		}
+		productList := []dto.ProductListPage{}
+		for _, productDb := range productDbList {
+			sale := 0
+			image1 := ""
+			image2 := ""
+			slug := ""
+			price := 0
+			for _, variation := range productDb.Variations {
+				if variation.Sale > 0 && int(variation.Sale) > sale {
+					sale = int(variation.Sale)
+				}
+				if len(variation.Images) > 1 {
+					image1 = variation.Images[0]
+					image2 = variation.Images[1]
+				}
+				slug = variation.Sku
+				price = int(variation.Price)
+			}
+			productList = append(productList, dto.ProductListPage{
+				ID:          productDb.ID,
+				Name:        productDb.Name,
+				Slug:        slug,
+				VariantsNum: len(productDb.Variations),
+				Price:       price,
+				Sale:        sale,
+				Image1:      image1,
+				Image2:      image2,
+				Category:    productDb.Category,
+			})
+		}
+		product = productList
+	}
+	return s.repo.SetProductList(context.Background(), product)
+}
+
+func (s *ProductService) GetProductList(ctx context.Context) ([]dto.ProductListPage, error) {
+	return s.repo.GetProductList(ctx)
+}
+
+func (s *ProductService) InitProductList() error {
+	return s.SetProductList([]dto.ProductListPage{})
+}
+
+func (s *ProductService) SetProductHeroList() error {
+	productDbList, err := s.GetAll()
+	if err != nil {
+		return err
+	}
+	productList := []dto.ProductListPage{}
+	for _, productDb := range productDbList {
+		sale := 0
+		image1 := ""
+		image2 := ""
+		slug := ""
+		price := 0
+		for _, variation := range productDb.Variations {
+			if variation.Sale > 0 && int(variation.Sale) > sale {
+				sale = int(variation.Sale)
+				if len(variation.Images) > 1 {
+					image1 = variation.Images[0]
+					image2 = variation.Images[1]
+				}
+			}
+			slug = variation.Sku
+			price = int(variation.Price)
+		}
+		productList = append(productList, dto.ProductListPage{
+			ID:          productDb.ID,
+			Name:        productDb.Name,
+			Slug:        slug,
+			VariantsNum: len(productDb.Variations),
+			Price:       price,
+			Sale:        sale,
+			Image1:      image1,
+			Image2:      image2,
+			Category:    productDb.Category,
+		})
+	}
+	sort.Slice(productList, func(i, j int) bool {
+		return productList[i].Sale > productList[j].Sale
+	})
+	return s.repo.SetProductHeroList(context.Background(), productList[:4])
+}
+func (s *ProductService) GetProductHeroList(ctx context.Context) ([]dto.ProductListPage, error) {
+	return s.repo.GetProductHeroList(ctx)
+}
+func (s *ProductService) InitProductHeroList() error {
+	return s.SetProductHeroList()
 }

@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/dto"
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
@@ -29,6 +30,10 @@ type ProductRepository interface {
 	GetProductBySku(ctx context.Context, productId, sku string) (*domain.Product, error)
 	ReserveStock(ctx context.Context, productId, sku string, quantity int) error
 	ReleaseStock(ctx context.Context, productId, sku string, quantity int) error
+	SetProductList(ctx context.Context, product []dto.ProductListPage) error
+	GetProductList(ctx context.Context) ([]dto.ProductListPage, error)
+	SetProductHeroList(ctx context.Context, product []dto.ProductListPage) error
+	GetProductHeroList(ctx context.Context) ([]dto.ProductListPage, error)
 }
 
 type AuthRepository interface {

@@ -8,12 +8,13 @@ import (
 
 // Config holds all the configurations from the YAML file.
 type Config struct {
-	AppName  string         `mapstructure:"app_name"`
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"db"`
-	Upload   UploadConfig   `mapstructure:"upload"`
-	Key      KeyConfig      `mapstructure:"key"`
-	Amqp     AmqpConfig     `mapstructure:"amqp"`
+	AppName  string          `mapstructure:"app_name"`
+	Server   *ServerConfig   `mapstructure:"server"`
+	Database *DatabaseConfig `mapstructure:"db"`
+	Upload   *UploadConfig   `mapstructure:"upload"`
+	Key      *KeyConfig      `mapstructure:"key"`
+	Amqp     *AmqpConfig     `mapstructure:"amqp"`
+	Cache    *CacheConfig    `mapstructure:"cache"`
 }
 
 // ServerConfig holds server-related configurations.
@@ -42,11 +43,17 @@ type UploadConfig struct {
 type AmqpConfig struct {
 	Url string `mapstructure:"url"`
 }
+type CacheConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	Db       int    `mapstructure:"db"`
+}
 
 // LoadConfig loads the configuration from the YAML file and unmarshals it into the Config struct.
 func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigFile(path) // Set the file path, e.g., "./config.yml"
-	viper.SetConfigType("yml")
+	viper.SetConfigType("yaml")
 	// viper.AutomaticEnv() // Automatically use environment variables where applicable
 
 	if err := viper.ReadInConfig(); err != nil {

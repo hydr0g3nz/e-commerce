@@ -6,17 +6,25 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/dto"
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
-	"github.com/hydr0g3nz/e-commerce/pkg/mongo/util"
+	"github.com/hydr0g3nz/e-commerce/pkg/redis"
+	"github.com/hydr0g3nz/e-commerce/pkg/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	CacheKeyProductList     = "product-list"
+	CacheKeyProductHeroList = "product-hero-list"
+)
+
 type ProductRepository struct {
 	db         *mongo.Database
+	cache      *redis.RedisClient
 	cfg        *config.Config
 	locks      map[string]*sync.Mutex
 	locksMutex sync.RWMutex
@@ -25,9 +33,9 @@ type ProductRepository struct {
 func (r *ProductRepository) Config() *config.Config {
 	return r.cfg
 }
-func NewProductRepository(cfg *config.Config, db *mongo.Client) *ProductRepository {
+func NewProductRepository(cfg *config.Config, db *mongo.Client, cache *redis.RedisClient) *ProductRepository {
 	Db := db.Database("e-commerce")
-	return &ProductRepository{db: Db, cfg: cfg, locks: make(map[string]*sync.Mutex)}
+	return &ProductRepository{db: Db, cache: cache, cfg: cfg, locks: make(map[string]*sync.Mutex)}
 }
 
 func (r *ProductRepository) Create(p *domain.Product) error {
@@ -276,4 +284,21 @@ func (r *ProductRepository) UpdateSale(ctx context.Context, sku string, salePerc
 	}
 
 	return nil
+}
+
+func (r *ProductRepository) SetProductList(ctx context.Context, product []dto.ProductListPage) error {
+	return r.cache.Set(ctx, CacheKeyProductList, product, time.Hour*24)
+}
+func (r *ProductRepository) SetProductHeroList(ctx context.Context, product []dto.ProductListPage) error {
+	return r.cache.Set(ctx, CacheKeyProductHeroList, product, time.Hour*24)
+}
+func (r *ProductRepository) GetProductList(ctx context.Context) ([]dto.ProductListPage, error) {
+	var product []dto.ProductListPage
+	err := r.cache.Get(ctx, CacheKeyProductList, &product)
+	return product, err
+}
+func (r *ProductRepository) GetProductHeroList(ctx context.Context) ([]dto.ProductListPage, error) {
+	var product []dto.ProductListPage
+	err := r.cache.Get(ctx, CacheKeyProductHeroList, &product)
+	return product, err
 }
