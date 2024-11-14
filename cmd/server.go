@@ -102,6 +102,6 @@ func main() {
 	v1.Post("/auth/register", authHandler.Register)
 	v1.Post("/auth/refresh", authHandler.Refresh)
 
-	app.Listen(fmt.Sprintf("127.0.0.1:%d", cfg.Server.Port))
+	app.Listen(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 
 }
