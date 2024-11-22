@@ -23,6 +23,7 @@ jobs:
           else
             echo "Secret is missing or empty"
           fi
+          gh secret list
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v1
         with:
