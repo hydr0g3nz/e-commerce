@@ -1,4 +1,4 @@
-# E-commerce Backend API
+# E-commerce Backend API 
 
 A modern e-commerce backend built with Go 1.23, following hexagonal architecture principles. This API provides comprehensive endpoints for managing products, categories, orders, and user authentication.
 
