@@ -16,7 +16,13 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      
+      - name: Debug secret
+        run: |
+          if [ -n "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo "Secret exists and is not empty"
+          else
+            echo "Secret is missing or empty"
+          fi
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v1
         with:
