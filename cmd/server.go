@@ -13,21 +13,22 @@ import (
 	"github.com/hydr0g3nz/e-commerce/internal/config"
 	"github.com/hydr0g3nz/e-commerce/internal/core/services"
 	mongoDb "github.com/hydr0g3nz/e-commerce/pkg/mongo"
+	rd "github.com/hydr0g3nz/e-commerce/pkg/redis"
 )
 
 func main() {
-	cfg, err := config.LoadConfig("./config.yml")
+	cfg, err := config.LoadConfig("./config.yaml")
 	if err != nil {
 		panic(err)
 	}
 
+	redis := rd.NewRedisClient(cfg.Cache)
 	mongo := mongoDb.DBConn(cfg)
-
 	categoryRepository := adapters.NewCategoryRepository(mongo)
 	categoryService := services.NewCategoryService(categoryRepository)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
-	productRepository := adapters.NewProductRepository(cfg, mongo)
+	productRepository := adapters.NewProductRepository(cfg, mongo, redis)
 	productService := services.NewProductService(productRepository)
 	productHandler := handlers.NewProductHandler(productService)
 
@@ -38,6 +39,13 @@ func main() {
 	orderRepository := adapters.NewOrderRepository(mongo)
 	orderService, err := services.NewOrderService(orderRepository, productRepository, cfg.Amqp.Url)
 	if err != nil {
+		panic(err)
+	}
+	// Init product list
+	if err := productService.InitProductList(); err != nil {
+		panic(err)
+	}
+	if err := productService.InitProductHeroList(); err != nil {
 		panic(err)
 	}
 	// Start reservation consumer
@@ -54,14 +62,12 @@ func main() {
 	// Middleware to recover from panics
 	app.Use(recover.New())
 
-	// Middleware for CORS (Cross-Origin Resource Sharing)
+	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "*",
-		AllowMethods: "*",
-		Next:         nil,
+		AllowOrigins: "*", // Allow all origins
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
-
 	m := middleware.NewAuthMiddleware(cfg.Key.AccessToken)
 
 	api := app.Group(cfg.Server.Path)
@@ -77,6 +83,7 @@ func main() {
 	v1.Delete("/category/:id", m.AuthenticateJWT(), m.RequireRole("admin"), categoryHandler.DeleteCategory)
 	//products
 	v1.Get("/product", productHandler.GetAllProducts)
+	v1.Get("/product-hero", productHandler.GetProductHeroList)
 	v1.Get("/product/:id", productHandler.GetProductByID)
 	v1.Post("/product", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.CreateProduct)
 	v1.Put("/product", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.UpdateProduct)
@@ -93,6 +100,6 @@ func main() {
 	v1.Post("/auth/register", authHandler.Register)
 	v1.Post("/auth/refresh", authHandler.Refresh)
 
-	app.Listen(fmt.Sprintf("127.0.0.1:%d", cfg.Server.Port))
+	app.Listen(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 
 }

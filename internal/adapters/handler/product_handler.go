@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/hydr0g3nz/e-commerce/internal/adapters/dto"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
 	"github.com/hydr0g3nz/e-commerce/internal/core/services"
 )
@@ -29,7 +31,7 @@ func (h *ProductHandler) CreateProduct(ctx *fiber.Ctx) error {
 }
 
 func (h *ProductHandler) GetAllProducts(ctx *fiber.Ctx) error {
-	products, err := h.service.GetAll()
+	products, err := h.service.GetProductList(context.Background())
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -53,6 +55,8 @@ func (h *ProductHandler) UpdateProduct(ctx *fiber.Ctx) error {
 	if err := h.service.Update(product); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
+	go h.service.SetProductList([]dto.ProductListPage{})
+	go h.service.SetProductHeroList()
 	return ctx.Status(fiber.StatusOK).SendString("Product updated")
 }
 
@@ -111,4 +115,12 @@ func (h *ProductHandler) DeleteImage(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.Status(fiber.StatusOK).SendString("Image deleted")
+}
+
+func (h *ProductHandler) GetProductHeroList(ctx *fiber.Ctx) error {
+	products, err := h.service.GetProductHeroList(ctx.Context())
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(products)
 }

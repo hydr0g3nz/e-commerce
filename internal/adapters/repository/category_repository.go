@@ -7,7 +7,7 @@ import (
 
 	"github.com/hydr0g3nz/e-commerce/internal/adapters/model"
 	"github.com/hydr0g3nz/e-commerce/internal/core/domain"
-	"github.com/hydr0g3nz/e-commerce/pkg/mongo/util"
+	"github.com/hydr0g3nz/e-commerce/pkg/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
