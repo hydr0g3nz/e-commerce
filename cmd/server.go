@@ -62,14 +62,12 @@ func main() {
 	// Middleware to recover from panics
 	app.Use(recover.New())
 
-	// Middleware for CORS (Cross-Origin Resource Sharing)
+	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "*",
-		AllowMethods: "*",
-		Next:         nil,
+		AllowOrigins: "*", // Allow all origins
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
-
 	m := middleware.NewAuthMiddleware(cfg.Key.AccessToken)
 
 	api := app.Group(cfg.Server.Path)
