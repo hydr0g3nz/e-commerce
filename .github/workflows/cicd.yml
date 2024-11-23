@@ -39,4 +39,4 @@ jobs:
           sed -i "s|asia-southeast1-docker.pkg.dev/learn-441406/ecom-back/ecom-back:[^ ]*|asia-southeast1-docker.pkg.dev/learn-441406/ecom-back/ecom-back:${SHORT_SHA}|" docker-compose.yml
           
           # Restart only the back service
-          docker compose up -d --no-deps back
+          docker compose up -d 
