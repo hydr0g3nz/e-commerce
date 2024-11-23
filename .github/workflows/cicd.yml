@@ -34,7 +34,7 @@ jobs:
         run: |
           # Get short SHA for version tag
           SHORT_SHA=$(git rev-parse --short HEAD)
-          
+          cd ${{ secrets.PROJECT_DIR }}
           # Use sed to update the back service version in docker-compose.yml
           sed -i "s|asia-southeast1-docker.pkg.dev/learn-441406/ecom-back/ecom-back:[^ ]*|asia-southeast1-docker.pkg.dev/learn-441406/ecom-back/ecom-back:${SHORT_SHA}|" docker-compose.yml
           
