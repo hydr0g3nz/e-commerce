@@ -30,15 +30,13 @@ jobs:
       - name: Build and Push Image
         run: make cicd
       
-      - name: Deploy to VM
+      - name: Update Docker Compose Version and Restart
         run: |
-          ssh ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} << EOF
-          docker pull ${{ env.ARTIFACT_REGISTRY }}/${{ env.REGISTRY_IMAGE }}:$(git rev-parse --short HEAD)
-          docker stop ${{ env.REGISTRY_IMAGE }} || true
-          docker rm ${{ env.REGISTRY_IMAGE }} || true
-          docker run -d \
-            --name ${{ env.REGISTRY_IMAGE }} \
-            --restart always \
-            -p 8080:8080 \
-            ${{ env.ARTIFACT_REGISTRY }}/${{ env.REGISTRY_IMAGE }}:$(git rev-parse --short HEAD)
-          EOF
+          # Get short SHA for version tag
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          
+          # Use sed to update the back service version in docker-compose.yml
+          sed -i "s|asia-southeast1-docker.pkg.dev/learn-441406/ecom-back/ecom-back:[^ ]*|asia-southeast1-docker.pkg.dev/learn-441406/ecom-back/ecom-back:${SHORT_SHA}|" docker-compose.yml
+          
+          # Restart only the back service
+          docker compose up -d --no-deps back
