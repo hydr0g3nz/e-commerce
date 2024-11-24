@@ -287,10 +287,10 @@ func (r *ProductRepository) UpdateSale(ctx context.Context, sku string, salePerc
 }
 
 func (r *ProductRepository) SetProductList(ctx context.Context, product []dto.ProductListPage) error {
-	return r.cache.Set(ctx, CacheKeyProductList, product, time.Hour*24)
+	return r.cache.Set(ctx, CacheKeyProductList, product, 0)
 }
 func (r *ProductRepository) SetProductHeroList(ctx context.Context, product []dto.ProductListPage) error {
-	return r.cache.Set(ctx, CacheKeyProductHeroList, product, time.Hour*24)
+	return r.cache.Set(ctx, CacheKeyProductHeroList, product, 0)
 }
 func (r *ProductRepository) GetProductList(ctx context.Context) ([]dto.ProductListPage, error) {
 	var product []dto.ProductListPage
