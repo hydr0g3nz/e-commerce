@@ -84,6 +84,7 @@ func main() {
 	//products
 	v1.Get("/product", productHandler.GetAllProducts)
 	v1.Get("/product-hero", productHandler.GetProductHeroList)
+	v1.Get("/product/category", productHandler.GetProductsByCategory)
 	v1.Get("/product/:id", productHandler.GetProductByID)
 	v1.Post("/product", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.CreateProduct)
 	v1.Put("/product", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.UpdateProduct)

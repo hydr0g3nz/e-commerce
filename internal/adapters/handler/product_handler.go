@@ -103,6 +103,7 @@ func (h *ProductHandler) UploadImage(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(fiber.Map{"filename": fp})
 }
+
 func (h *ProductHandler) DeleteImage(ctx *fiber.Ctx) error {
 	filename := ctx.Params("filename")
 	if filename == "" {
@@ -123,4 +124,16 @@ func (h *ProductHandler) GetProductHeroList(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.Status(fiber.StatusOK).JSON(products)
+}
+
+func (h *ProductHandler) GetProductsByCategory(ctx *fiber.Ctx) error {
+	products, err := h.service.GetProductsByCategory(ctx.Context())
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to get products by category: %v", err),
+		})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"categories": products,
+	})
 }

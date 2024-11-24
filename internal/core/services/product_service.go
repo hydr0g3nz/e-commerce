@@ -181,3 +181,6 @@ func (s *ProductService) GetProductHeroList(ctx context.Context) ([]dto.ProductL
 func (s *ProductService) InitProductHeroList() error {
 	return s.SetProductHeroList()
 }
+func (s *ProductService) GetProductsByCategory(ctx context.Context) (map[string]*domain.Product, error) {
+	return s.repo.GetProductsByCategory(ctx)
+}

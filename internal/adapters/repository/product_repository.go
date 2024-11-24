@@ -302,3 +302,51 @@ func (r *ProductRepository) GetProductHeroList(ctx context.Context) ([]dto.Produ
 	err := r.cache.Get(ctx, CacheKeyProductHeroList, &product)
 	return product, err
 }
+
+func (r *ProductRepository) GetProductsByCategory(ctx context.Context) (map[string]*domain.Product, error) {
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"deleted_at": nil,
+			},
+		},
+		{
+			"$sort": bson.M{
+				"created_at": -1,
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$category",
+				"delegate_product": bson.M{
+					"$first": "$$ROOT",
+				},
+			},
+		},
+	}
+
+	cursor, err := r.db.Collection("product").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	result := make(map[string]*domain.Product)
+	for cursor.Next(ctx) {
+		var groupResult struct {
+			ID              string        `bson:"_id"`
+			DelegateProduct model.Product `bson:"delegate_product"`
+		}
+		if err := cursor.Decode(&groupResult); err != nil {
+			return nil, err
+		}
+		product := model.ProductModelToDomain(&groupResult.DelegateProduct)
+		result[groupResult.ID] = product
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
