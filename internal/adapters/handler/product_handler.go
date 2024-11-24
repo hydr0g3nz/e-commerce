@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 
@@ -31,7 +30,16 @@ func (h *ProductHandler) CreateProduct(ctx *fiber.Ctx) error {
 }
 
 func (h *ProductHandler) GetAllProducts(ctx *fiber.Ctx) error {
-	products, err := h.service.GetProductList(context.Background())
+	category := ctx.Query("category")
+	var products []dto.ProductListPage
+	var err error
+
+	if category != "" {
+		products, err = h.service.GetByCategory(ctx.Context(), category)
+	} else {
+		products, err = h.service.GetProductList(ctx.Context())
+	}
+
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -126,8 +134,8 @@ func (h *ProductHandler) GetProductHeroList(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(products)
 }
 
-func (h *ProductHandler) GetProductsByCategory(ctx *fiber.Ctx) error {
-	products, err := h.service.GetProductsByCategory(ctx.Context())
+func (h *ProductHandler) GetProductsCategoryDelegate(ctx *fiber.Ctx) error {
+	products, err := h.service.GetCacheProductsCategoryDelegate(ctx.Context())
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to get products by category: %v", err),

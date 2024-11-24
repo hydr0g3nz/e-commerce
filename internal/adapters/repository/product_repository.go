@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	CacheKeyProductList     = "product-list"
-	CacheKeyProductHeroList = "product-hero-list"
+	CacheKeyProductList             = "product-list"
+	CacheKeyProductHeroList         = "product-hero-list"
+	CacheKeyProductCategoryDelegate = "product-category-delegate"
 )
 
 type ProductRepository struct {
@@ -303,7 +304,7 @@ func (r *ProductRepository) GetProductHeroList(ctx context.Context) ([]dto.Produ
 	return product, err
 }
 
-func (r *ProductRepository) GetProductsByCategory(ctx context.Context) (map[string]*domain.Product, error) {
+func (r *ProductRepository) GetProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error) {
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -349,4 +350,31 @@ func (r *ProductRepository) GetProductsByCategory(ctx context.Context) (map[stri
 	}
 
 	return result, nil
+}
+func (r *ProductRepository) SetProductCategoryDelegate(ctx context.Context, product map[string]*domain.Product) error {
+	return r.cache.Set(ctx, CacheKeyProductCategoryDelegate, product, 0)
+}
+
+func (r *ProductRepository) GetCacheProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error) {
+	var product map[string]*domain.Product
+	err := r.cache.Get(ctx, CacheKeyProductCategoryDelegate, &product)
+	return product, err
+}
+func (r *ProductRepository) GetByCategory(ctx context.Context, category string) ([]*domain.Product, error) {
+	var products []*model.Product
+	cursor, err := r.db.Collection("product").Find(ctx, bson.M{
+		"category":   category,
+		"deleted_at": nil,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	err = cursor.All(ctx, &products)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ProductListModelToDomainList(products), nil
 }

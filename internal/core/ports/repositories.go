@@ -35,7 +35,10 @@ type ProductRepository interface {
 	GetProductList(ctx context.Context) ([]dto.ProductListPage, error)
 	SetProductHeroList(ctx context.Context, product []dto.ProductListPage) error
 	GetProductHeroList(ctx context.Context) ([]dto.ProductListPage, error)
-	GetProductsByCategory(ctx context.Context) (map[string]*domain.Product, error)
+	GetProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error)
+	GetCacheProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error)
+	SetProductCategoryDelegate(ctx context.Context, product map[string]*domain.Product) error
+	GetByCategory(ctx context.Context, category string) ([]*domain.Product, error)
 }
 
 type AuthRepository interface {
