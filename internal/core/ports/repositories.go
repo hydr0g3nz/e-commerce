@@ -18,6 +18,7 @@ type CategoryRepository interface {
 	AddProduct(categoryID string, productID string) error
 	RemoveProduct(categoryID string, productID string) error
 }
+
 type ProductRepository interface {
 	Config() *config.Config
 	Create(product *domain.Product) error
@@ -34,6 +35,10 @@ type ProductRepository interface {
 	GetProductList(ctx context.Context) ([]dto.ProductListPage, error)
 	SetProductHeroList(ctx context.Context, product []dto.ProductListPage) error
 	GetProductHeroList(ctx context.Context) ([]dto.ProductListPage, error)
+	GetProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error)
+	GetCacheProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error)
+	SetProductCategoryDelegate(ctx context.Context, product map[string]*domain.Product) error
+	GetByCategory(ctx context.Context, category string) ([]*domain.Product, error)
 }
 
 type AuthRepository interface {
@@ -48,6 +53,7 @@ type AuthRepository interface {
 	EmailExists(email string) bool
 	Create(user *domain.User) error
 }
+
 type OrderRepository interface {
 	Create(ctx context.Context, order *domain.Order) (string, error)
 	UpdateStatus(ctx context.Context, orderID, status string) error

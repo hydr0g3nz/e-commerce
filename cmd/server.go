@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -48,6 +49,9 @@ func main() {
 	if err := productService.InitProductHeroList(); err != nil {
 		panic(err)
 	}
+	if err := productService.SetProductCategoryDelegate(context.Background()); err != nil {
+		panic(err)
+	}
 	// Start reservation consumer
 	orderService.StartReservationConsumer()
 	defer orderService.Close()
@@ -84,6 +88,7 @@ func main() {
 	//products
 	v1.Get("/product", productHandler.GetAllProducts)
 	v1.Get("/product-hero", productHandler.GetProductHeroList)
+	v1.Get("/product/category-delegate", productHandler.GetProductsCategoryDelegate)
 	v1.Get("/product/:id", productHandler.GetProductByID)
 	v1.Post("/product", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.CreateProduct)
 	v1.Put("/product", m.AuthenticateJWT(), m.RequireRole("admin"), productHandler.UpdateProduct)

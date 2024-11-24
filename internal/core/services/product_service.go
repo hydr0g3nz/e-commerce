@@ -181,3 +181,53 @@ func (s *ProductService) GetProductHeroList(ctx context.Context) ([]dto.ProductL
 func (s *ProductService) InitProductHeroList() error {
 	return s.SetProductHeroList()
 }
+func (s *ProductService) GetProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error) {
+	return s.repo.GetProductsCategoryDelegate(ctx)
+}
+func (s *ProductService) GetCacheProductsCategoryDelegate(ctx context.Context) (map[string]*domain.Product, error) {
+	return s.repo.GetCacheProductsCategoryDelegate(ctx)
+}
+func (s *ProductService) SetProductCategoryDelegate(ctx context.Context) error {
+	products, err := s.GetProductsCategoryDelegate(ctx)
+	if err != nil {
+		return err
+	}
+	return s.repo.SetProductCategoryDelegate(ctx, products)
+}
+func (s *ProductService) GetByCategory(ctx context.Context, category string) ([]dto.ProductListPage, error) {
+	productDbList, err := s.repo.GetByCategory(ctx, category)
+	if err != nil {
+		return nil, err
+	}
+	productList := []dto.ProductListPage{}
+	for _, productDb := range productDbList {
+		sale := 0
+		image1 := ""
+		image2 := ""
+		slug := ""
+		price := 0
+		for _, variation := range productDb.Variations {
+			if variation.Sale > 0 && int(variation.Sale) > sale {
+				sale = int(variation.Sale)
+				if len(variation.Images) > 1 {
+					image1 = variation.Images[0]
+					image2 = variation.Images[1]
+				}
+			}
+			slug = variation.Sku
+			price = int(variation.Price)
+		}
+		productList = append(productList, dto.ProductListPage{
+			ID:          productDb.ID,
+			Name:        productDb.Name,
+			Slug:        slug,
+			VariantsNum: len(productDb.Variations),
+			Price:       price,
+			Sale:        sale,
+			Image1:      image1,
+			Image2:      image2,
+			Category:    productDb.Category,
+		})
+	}
+	return productList, nil
+}
