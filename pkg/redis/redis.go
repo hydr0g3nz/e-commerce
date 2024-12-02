@@ -21,7 +21,7 @@ func NewRedisClient(cfg *config.CacheConfig) *RedisClient {
 		Password: cfg.Password,
 		DB:       cfg.Db,
 	})
-	fmt.Println("redis", client)
+	fmt.Println("redis", fmt.Sprintf("%s:%d  %s", cfg.Host, cfg.Port, cfg.Password))
 	// Test connection
 	ctx := context.Background()
 	if err := client.Ping(ctx).Err(); err != nil {
