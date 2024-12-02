@@ -64,6 +64,6 @@ func LoadConfig(path string) (*Config, error) {
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("unable to decode into struct: %w", err)
 	}
-	fmt.Println("config", config)
+	// fmt.Printf("config: %+v\n", config)
 	return &config, nil
 }
