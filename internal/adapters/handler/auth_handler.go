@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -74,6 +75,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 
 	tokens, err := h.service.RefreshAccessToken(refreshToken)
 	if err != nil {
+		log.Println("Error refreshing access token:", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid refresh token",
 		})

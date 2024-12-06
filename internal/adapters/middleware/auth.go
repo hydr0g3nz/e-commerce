@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -50,6 +51,7 @@ func (m *AuthMiddleware) AuthenticateJWT() fiber.Handler {
 		})
 
 		if err != nil {
+			log.Error("Error parsing token:", err)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid token",
 			})
