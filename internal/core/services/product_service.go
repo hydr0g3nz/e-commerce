@@ -94,11 +94,11 @@ func (s *ProductService) SetProductList(product []dto.ProductListPage) error {
 		}
 		productList := []dto.ProductListPage{}
 		for _, productDb := range productDbList {
-			sale := 0
-			image1 := ""
-			image2 := ""
-			slug := ""
-			price := 0
+			sale := int(productDb.Variations[0].Sale)
+			image1 := productDb.Variations[0].Images[0]
+			image2 := productDb.Variations[0].Images[1]
+			slug := productDb.Variations[0].Sku
+			price := int(productDb.Variations[0].Price)
 			for _, variation := range productDb.Variations {
 				if variation.Sale > 0 && int(variation.Sale) > sale {
 					sale = int(variation.Sale)
@@ -142,11 +142,11 @@ func (s *ProductService) SetProductHeroList() error {
 	}
 	productList := []dto.ProductListPage{}
 	for _, productDb := range productDbList {
-		sale := 0
-		image1 := ""
-		image2 := ""
-		slug := ""
-		price := 0
+		sale := int(productDb.Variations[0].Sale)
+		image1 := productDb.Variations[0].Images[0]
+		image2 := productDb.Variations[0].Images[1]
+		slug := productDb.Variations[0].Sku
+		price := int(productDb.Variations[0].Price)
 		for _, variation := range productDb.Variations {
 			if variation.Sale > 0 && int(variation.Sale) > sale {
 				sale = int(variation.Sale)
@@ -201,11 +201,11 @@ func (s *ProductService) GetByCategory(ctx context.Context, category string) ([]
 	}
 	productList := []dto.ProductListPage{}
 	for _, productDb := range productDbList {
-		sale := 0
-		image1 := ""
-		image2 := ""
-		slug := ""
-		price := 0
+		sale := int(productDb.Variations[0].Sale)
+		image1 := productDb.Variations[0].Images[0]
+		image2 := productDb.Variations[0].Images[1]
+		slug := productDb.Variations[0].Sku
+		price := int(productDb.Variations[0].Price)
 		for _, variation := range productDb.Variations {
 			if variation.Sale > 0 && int(variation.Sale) > sale {
 				sale = int(variation.Sale)
