@@ -33,7 +33,7 @@ func (s *AuthService) GenerateTokenPair(userId string, role string) (*domain.Tok
 	}
 
 	// Generate refresh token (longer lived)
-	refreshToken, err := s.createRefreshToken(userId)
+	refreshToken, err := s.createRefreshToken(userId, role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create refresh token: %w", err)
 	}
@@ -122,7 +122,7 @@ func (s *AuthService) createAccessToken(userId string, role string) (string, int
 	return signedToken, expiresIn, nil
 }
 
-func (s *AuthService) createRefreshToken(userId string) (string, error) {
+func (s *AuthService) createRefreshToken(userId, role string) (string, error) {
 	now := time.Now()
 	tokenUuid := uuid.New().String()
 
@@ -134,6 +134,7 @@ func (s *AuthService) createRefreshToken(userId string) (string, error) {
 		"uuid":    tokenUuid,
 		"exp":     exp,
 		"iat":     now.Unix(),
+		"role":    role,
 		"type":    "refresh",
 	}
 
