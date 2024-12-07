@@ -23,3 +23,22 @@ func DomainOrderToModel(o *domain.Order) *Order {
 		PaymentMethod:   o.PaymentMethod,
 	}
 }
+func (o *Order) ToDomain() *domain.Order {
+	return &domain.Order{
+		ID:              o.ID,
+		UserID:          o.UserID,
+		Status:          o.Status,
+		Date:            o.CreatedAt,
+		ShippingAddress: o.ShippingAddress,
+		Items:           o.Items,
+		TotalPrice:      o.TotalPrice,
+		PaymentMethod:   o.PaymentMethod,
+	}
+}
+func OrdersModelToDomainList(orders []*Order) []*domain.Order {
+	var ordersList []*domain.Order
+	for _, order := range orders {
+		ordersList = append(ordersList, order.ToDomain())
+	}
+	return ordersList
+}

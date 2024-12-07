@@ -100,6 +100,7 @@ func main() {
 	v1.Static("/images", cfg.Upload.ServerPath)
 	//orders
 	v1.Post("/order", m.AuthenticateJWT(), orderHandler.CreateOrder)
+	v1.Get("/orders", m.AuthenticateJWT(), orderHandler.GetUserOrders)
 	//auth
 	v1.Post("/auth/login", authHandler.Login)
 	v1.Post("/auth/register", authHandler.Register)

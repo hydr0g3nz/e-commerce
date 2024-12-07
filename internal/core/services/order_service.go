@@ -259,6 +259,7 @@ func (s *OrderService) StartReservationConsumer() error {
 }
 
 func (s *OrderService) processReservation(ctx context.Context, msg *ReservationMessage) error {
+	time.Sleep(15 * time.Second)
 	// Update order status to processing
 	if err := s.orderRepo.UpdateStatus(ctx, msg.OrderID, OrderStatusProcessing); err != nil {
 		return err
@@ -293,4 +294,7 @@ func (s *OrderService) Close() {
 	if s.amqpConnection != nil {
 		s.amqpConnection.Close()
 	}
+}
+func (s *OrderService) GetOrdersByUserID(ctx context.Context, userID string) ([]*domain.Order, error) {
+	return s.orderRepo.GetUserOrders(ctx, userID)
 }

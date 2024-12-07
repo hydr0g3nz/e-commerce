@@ -57,4 +57,5 @@ type AuthRepository interface {
 type OrderRepository interface {
 	Create(ctx context.Context, order *domain.Order) (string, error)
 	UpdateStatus(ctx context.Context, orderID, status string) error
+	GetUserOrders(ctx context.Context, userID string) ([]*domain.Order, error)
 }
