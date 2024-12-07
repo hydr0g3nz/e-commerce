@@ -33,3 +33,11 @@ func (h *OrderHandler) CreateOrder(ctx *fiber.Ctx) error {
 	}
 	return ctx.Status(fiber.StatusOK).JSON(order)
 }
+func (h *OrderHandler) GetUserOrders(ctx *fiber.Ctx) error {
+	userID := ctx.Locals("user_id").(string)
+	orders, err := h.service.GetOrdersByUserID(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.Status(fiber.StatusOK).JSON(orders)
+}

@@ -109,7 +109,7 @@ func (r *OrderRepository) GetByID(ctx context.Context, orderID string) (*domain.
 }
 
 // GetUserOrders retrieves all orders for a specific user
-func (r *OrderRepository) GetUserOrders(ctx context.Context, userID string) ([]domain.Order, error) {
+func (r *OrderRepository) GetUserOrders(ctx context.Context, userID string) ([]*domain.Order, error) {
 	collection := r.db.Collection(orderCollection)
 
 	cursor, err := collection.Find(ctx, bson.M{"user_id": userID})
@@ -118,10 +118,10 @@ func (r *OrderRepository) GetUserOrders(ctx context.Context, userID string) ([]d
 	}
 	defer cursor.Close(ctx)
 
-	var orders []domain.Order
+	var orders []*model.Order
 	if err = cursor.All(ctx, &orders); err != nil {
 		return nil, err
 	}
 
-	return orders, nil
+	return model.OrdersModelToDomainList(orders), nil
 }
