@@ -1,3 +1,5 @@
+# Diagram
+![alt text](https://github.com/hydr0g3nz/e-commerce_back/blob/develop/ecom_back_diagram.svg)
 # E-commerce Backend API 
 
 A modern e-commerce backend built with Go 1.23, following hexagonal architecture principles. This API provides comprehensive endpoints for managing products, categories, orders, and user authentication.
