@@ -5,10 +5,6 @@ import (
 )
 
 type Category struct {
-	// "category_id": "cat001",
-	// "name": "Electronics",
-	// "description": "Devices and gadgets",
-	// "product_ids": ["987", "654", "321"]
 	Model       `bson:"inline"`
 	Name        string   `json:"name" bson:"name,omitempty"`
 	Description string   `json:"description" bson:"description,omitempty"`
