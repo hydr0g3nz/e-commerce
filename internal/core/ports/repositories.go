@@ -42,11 +42,6 @@ type ProductRepository interface {
 }
 
 type AuthRepository interface {
-	// CreateUser(user *domain.User) error
-	// GetUserByEmail(email string) (*domain.User, error)
-	// GetUserByID(id string) (*domain.User, error)
-	// UpdateUser(user *domain.User) error
-	// DeleteUser(id string) error
 	FindByEmail(email string) (*domain.User, error)
 	CreateRefreshToken(userId string, metadata *domain.TokenMetadata) error
 	FetchRefreshToken(userId string) (*model.RefreshToken, error)
